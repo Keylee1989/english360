@@ -1,0 +1,24 @@
+{
+  "name": "英语360天学习系统",
+  "short_name": "英语360天",
+  "description": "零基础→地道美语：360天全自动带学系统（语音/语法/听力/口语）",
+  "lang": "zh-CN",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#2F5BD6",
+  "theme_color": "#2F5BD6",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
