@@ -295,6 +295,16 @@
         <button class="btn" onclick="document.getElementById('importFile').click()">⬆️ 导入进度（选择文件）</button>
         <input type="file" id="importFile" accept=".json" style="display:none" onchange="importProgress()">
       </div>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px dashed #e3e8f2">
+        <p class="phase"><b>🔑 进度码（记密码一样备份）</b>：点「生成进度码」得到一串密码样字符，复制存进微信收藏/记事本。换手机/换浏览器时，粘贴这串码点「恢复」就接着学，不用传文件。</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0">
+          <button class="btn green" onclick="genCode()">🔑 生成进度码</button>
+          <button class="btn" onclick="copyCode()">📋 复制进度码</button>
+          <input type="text" id="codeIn" placeholder="粘贴进度码（E360. 开头）" style="flex:1;min-width:180px;padding:8px;border:1px solid #d5dbe8;border-radius:8px;font-size:13px">
+          <button class="btn" onclick="restoreCode()">↩️ 用进度码恢复</button>
+        </div>
+        <textarea id="codeOut" class="hidden" readonly style="width:100%;height:90px;margin-top:6px;font-size:12px;word-break:break-all;box-sizing:border-box;padding:8px;border:1px solid #d5dbe8;border-radius:8px;background:#f7f9fd;color:#444"></textarea>
+      </div>
       <div class="tip hidden" id="backupMsg" style="margin-top:6px"></div>
     </div>
   </section>
@@ -381,7 +391,7 @@ let mastery = LS.get("en360_mastery", {});
 let hours = LS.get("en360_hours", 4);
 let iron = LS.get("en360_iron", 1);
 let quizDone = LS.get("en360_quizDone", {});
-const APP_VERSION = "2026-08-12-v5";
+const APP_VERSION = "2026-08-12-v6";
 let curDay = 1;
 
 // ---------- 基础 ----------
@@ -1816,6 +1826,88 @@ function fullReset(btn){
   localStorage.removeItem("en360_reads");
   btn.textContent = "✅ 已重置，页面将刷新";
   setTimeout(() => location.reload(), 800);
+}
+
+// ---------- 进度码（密码式备份/恢复） ----------
+// 把打卡明细压缩成 24 位二进制→16进制，让进度码尽量短
+function packBits(arr){
+  let bits = "";
+  for (let i = 0; i < arr.length; i++) bits += arr[i] ? "1" : "0";
+  while (bits.length % 4) bits += "0";
+  let hex = "";
+  for (let i = 0; i < bits.length; i += 4) hex += parseInt(bits.slice(i, i + 4), 2).toString(16);
+  return hex;
+}
+function unpackBits(hex, len){
+  let bits = "";
+  for (const ch of hex) bits += parseInt(ch, 16).toString(2).padStart(4, "0");
+  const arr = [];
+  for (let i = 0; i < len; i++) arr.push(bits[i] === "1");
+  return arr;
+}
+function packMap(m, len){ const out = {}; for (const k in m) out[k] = packBits(m[k] || [], len); return out; }
+function unpackMap(o, len){ const out = {}; for (const k in o) out[k] = unpackBits(o[k], len); return out; }
+function codeMsg(m){
+  const el = document.getElementById("backupMsg");
+  if (!el) return;
+  el.textContent = m;
+  el.classList.remove("hidden");
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.add("hidden"), 8000);
+}
+function genCode(){
+  const keys = ["en360_start","en360_checks","en360_pass","en360_wrong","en360_cn","en360_phaseSeen","en360_mastery","en360_hours","en360_lock","en360_lockedReview","en360_inputLog","en360_iron","en360_rate","en360_quizDone","en360_reads"];
+  const d = {};
+  keys.forEach(k => { const v = localStorage.getItem(k); if (v != null && v !== "undefined"){ try { d[k] = JSON.parse(v); } catch(e){} } });
+  // 打卡明细/测验记录压缩成十六进制，进度码短一半以上
+  if (d.en360_checks) d.en360_checks = packMap(d.en360_checks, 24);
+  if (d.en360_quizDone) d.en360_quizDone = packMap(d.en360_quizDone, 24);
+  const obj = { v: 1, at: new Date().toISOString(), d: d };
+  let b64 = btoa(unescape(encodeURIComponent(JSON.stringify(obj)))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  const code = "E360." + b64;
+  const ta = document.getElementById("codeOut");
+  if (ta){ ta.value = code; ta.classList.remove("hidden"); }
+  codeMsg("✅ 进度码已生成（约 " + Math.max(1, Math.round(code.length / 1024 * 10) / 10) + " KB，学得越多越长属正常）。点「复制进度码」存进微信收藏/记事本");
+}
+function copyCode(){
+  const ta = document.getElementById("codeOut");
+  if (!ta || !ta.value){ codeMsg("⚠️ 请先点「生成进度码」", false); return; }
+  ta.classList.remove("hidden");
+  ta.select();
+  ta.setSelectionRange(0, 9999999);
+  let ok = false;
+  try { ok = document.execCommand("copy"); } catch(e){}
+  codeMsg(ok ? "✅ 已复制！请粘贴到微信收藏/备忘录/记事本里存好（这就是你的「密码」）" : "✅ 已选中整串进度码，请按 Ctrl+C 复制（手机长按文字复制）");
+}
+function restoreCode(){
+  const inp = document.getElementById("codeIn");
+  const code = (inp ? inp.value : "").trim();
+  if (!code){ codeMsg("⚠️ 请先粘贴你的进度码（E360. 开头）", false); return; }
+  try {
+    let b64 = code.replace(/^E360\./, "").replace(/-/g, "+").replace(/_/g, "/");
+    while (b64.length % 4) b64 += "=";
+    const obj = JSON.parse(decodeURIComponent(escape(atob(b64))));
+    if (!obj || obj.v !== 1 || !obj.d){ throw new Error("bad format"); }
+    const d = obj.d;
+    if (d.en360_checks) d.en360_checks = unpackMap(d.en360_checks, 24);
+    if (d.en360_quizDone) d.en360_quizDone = unpackMap(d.en360_quizDone, 24);
+    let n = 0;
+    for (const k in d){ if (d[k] != null){ localStorage.setItem(k, JSON.stringify(d[k])); n++; } }
+    if (!n){ throw new Error("empty"); }
+    start = LS.get("en360_start", null);
+    checks = LS.get("en360_checks", {});
+    passDays = LS.get("en360_pass", []);
+    wrong = LS.get("en360_wrong", []);
+    mastery = LS.get("en360_mastery", {});
+    hours = LS.get("en360_hours", 4);
+    iron = LS.get("en360_iron", 1);
+    quizDone = LS.get("en360_quizDone", {});
+    const startD = d.en360_start ? String(d.en360_start).slice(0, 10) : "未设";
+    codeMsg("✅ 恢复成功！已从进度码恢复 " + n + " 项数据（开始日期 " + startD + "），现在就能接着学");
+    renderAll();
+  } catch(e){
+    codeMsg("⚠️ 进度码无效或已损坏：请重新从原设备复制（注意别漏字符、别带空格回车）", false);
+  }
 }
 
 // ---------- 进度备份（导出/导入） ----------
