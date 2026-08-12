@@ -272,6 +272,10 @@
       <div style="margin:10px 0" id="calWrap"></div>
     </div>
     <div class="card">
+      <h2>📊 学习周报（最近7天）</h2>
+      <div id="weeklyWrap"></div>
+    </div>
+    <div class="card">
       <h2>🔄 重置学习进度</h2>
       <p class="phase">想重学某一天：在上方点那个日期的格子跳到那一天，再到「自动学习」页点黄色按钮「🔄 清空这一天」；也可以在这里直接清空：</p>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0">
@@ -372,7 +376,7 @@ let mastery = LS.get("en360_mastery", {});
 let hours = LS.get("en360_hours", 4);
 let iron = LS.get("en360_iron", 1);
 let quizDone = LS.get("en360_quizDone", {});
-const APP_VERSION = "2026-08-12-v3";
+const APP_VERSION = "2026-08-12-v4";
 let curDay = 1;
 
 // ---------- 基础 ----------
@@ -485,7 +489,7 @@ function switchTab(name){
   document.querySelectorAll("nav button").forEach(b => b.classList.toggle("on", b.dataset.tab === name));
   document.querySelectorAll("main > section").forEach(s => s.classList.add("hidden"));
   document.getElementById("tab-" + name).classList.remove("hidden");
-  if (name === "cal") renderCal();
+  if (name === "cal"){ renderCal(); renderWeekly(); }
   if (name === "wrong") renderWrong();
   if (name === "today") renderDayList();
   if (name === "auto") renderAuto();
@@ -890,6 +894,7 @@ function wListen(){
   if (c < 3) h += `<div class="tip">先听🔊原声，猜猜句子什么意思，再点「👁️ 看中文」对照。</div>`;
   P.forEach(p => { h += `<div class="pcard"><div><b>${esc(p[0])}</b> <button class="audio" onclick="speak('${p[0].replace(/'/g,"\\'")}')">🔊</button></div><div>${zhCard(p[1])}</div></div>`; });
   h += `<button class="btn green" onclick="runListenQuiz(5)">🎧 听力听写测验（今天单词）</button>
+    <button class="btn" onclick="runListenQuiz(3, todayPhrases())">🎧 句子听写（听整句→打出来，听说写一起练）</button>
     <button class="btn orange" onclick="wPhraseSpeak(0)">🎤 跟读第1句（语音打分）</button>
     <button class="btn gray" onclick="skipQuiz()">跳过</button>`;
   return h;
@@ -898,7 +903,8 @@ function wSpeak(){
   const P = todayPhrases();
   let h = `<h3>📖 实用句型跟读（点🔊听，跟读）</h3>`;
   P.forEach((p, k) => { h += `<div class="pcard"><div><b>${esc(p[0])}</b> <button class="audio" onclick="speak('${p[0].replace(/'/g,"\\'")}')">🔊</button> <button class="btn orange" style="padding:3px 10px;font-size:12px" onclick="wPhraseSpeak(${k})">🎤跟读</button></div><div>${zhCard(p[1])}</div></div>`; });
-  h += `<button class="btn gray" onclick="skipQuiz()">跳过</button>`;
+  h += `<button class="btn" onclick="runListenQuiz(3, todayPhrases())">🎧 句子听写（听整句→打出来）</button>
+    <button class="btn gray" onclick="skipQuiz()">跳过</button>`;
   return h;
 }
 function wPhraseSpeak(k){
@@ -1266,8 +1272,37 @@ function wReview(){
       ws.slice(0, 14).map(w => `<div class="wcard" style="padding:6px"><div><b>${esc(w[0])}</b> <button class="audio" onclick="speak('${w[0].replace(/'/g,"\\'")}')">🔊</button></div><div>${zhCard(w[1])}</div><div class="xy" style="font-size:11px">${starHtml(w[0])}</div></div>`).join("") +
       `</div>`;
   });
-  h += `<button class="btn gray" onclick="skipQuiz()">已复习完，完成本节</button>`;
+  h += `<button class="btn green" onclick="runDueReviewQuiz()">⚡ 到期词冲刺测验（一次过完今天该复习的）</button>
+    <button class="btn gray" onclick="skipQuiz()">已复习完，完成本节</button>`;
   return h;
+}
+// ⚡ 到期词冲刺：把今天该复习的所有词(记忆曲线+错词)合并成一次测验，效率翻倍
+function runDueReviewQuiz(){
+  let pool = [];
+  [1,3,7,14,30].forEach(g => { const dd = curDay - g; if (dd >= 1 && DAYS[dd-1] && DAYS[dd-1].words) pool = pool.concat(DAYS[dd-1].words); });
+  wrong.forEach(w => { if (w.lastDay < curDay && !pool.some(p => norm(p[0]) === norm(w.w))) pool.push([w.w, w.zh, w.x || ""]); });
+  pool = pool.filter(x => x && x[0]);
+  if (!pool.length){ const q = document.getElementById("pQuiz"); if (q) q.insertAdjacentHTML("beforeend", "<div class='tip'>今天没有到期的复习内容。</div>"); return; }
+  runListenQuiz(Math.min(12, pool.length), pool);
+}
+// 📊 学习周报：最近7天的学习数据快照
+function renderWeekly(){
+  const wrap = document.getElementById("weeklyWrap");
+  if (!wrap) return;
+  const t = todayNo();
+  const from = Math.max(1, t - 6);
+  let daysDone = 0, passes = 0, newWrong = 0;
+  for (let d = from; d <= t; d++){
+    if (dayDone(d) > 0) daysDone++;
+    if (hasPass(d)) passes++;
+  }
+  wrong.forEach(w => { if (w.lastDay >= from && w.lastDay <= t) newWrong++; });
+  wrap.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:14px">
+    <tr><td style="padding:4px">📅 本周学习天数</td><td style="padding:4px"><b>${daysDone}/7</b></td><td style="padding:4px">🏆 本周过关</td><td style="padding:4px"><b>${passes} 天</b></td></tr>
+    <tr><td style="padding:4px">⭐ 累计已掌握</td><td style="padding:4px"><b>${masteredCount()} 词</b></td><td style="padding:4px">❌ 本周新错词</td><td style="padding:4px"><b>${newWrong} 个</b>（进错词本自动复习）</td></tr>
+    <tr><td style="padding:4px">🔥 连续打卡</td><td style="padding:4px"><b>${streak()} 天</b></td><td style="padding:4px">💡 建议</td><td style="padding:4px">${daysDone >= 6 ? "状态很好，保持！" : "本周还有 " + (7 - daysDone) + " 天没学，补上★必做段即可"}</td></tr>
+  </table>
+  <div class="tip">坚持率就是一切：断一天补一天，别放弃。第7/14/21…天是周复盘日，会复习本周全部内容。</div>`;
 }
 function speakAllDay(d){
   const ws = DAYS[d-1].words.map(w => w[0]);
