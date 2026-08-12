@@ -168,6 +168,7 @@
   <button data-tab="wrong">❌ 错词本</button>
   <button data-tab="guide">📘 学习手册</button>
   <button data-tab="res">🔗 资源表</button>
+  <button data-tab="read">📚 阶段阅读</button>
   <button data-tab="words">📚 单词表</button>
 </nav>
 
@@ -311,6 +312,10 @@
     <div class="card guide" id="guideWrap"></div>
   </section>
 
+  <section id="tab-read" class="hidden">
+    <div id="readWrap"></div>
+  </section>
+
   <section id="tab-res" class="hidden">
     <div class="card" id="resWrap"></div>
   </section>
@@ -376,7 +381,7 @@ let mastery = LS.get("en360_mastery", {});
 let hours = LS.get("en360_hours", 4);
 let iron = LS.get("en360_iron", 1);
 let quizDone = LS.get("en360_quizDone", {});
-const APP_VERSION = "2026-08-12-v4";
+const APP_VERSION = "2026-08-12-v5";
 let curDay = 1;
 
 // ---------- 基础 ----------
@@ -490,6 +495,7 @@ function switchTab(name){
   document.querySelectorAll("main > section").forEach(s => s.classList.add("hidden"));
   document.getElementById("tab-" + name).classList.remove("hidden");
   if (name === "cal"){ renderCal(); renderWeekly(); }
+  if (name === "read") renderRead();
   if (name === "wrong") renderWrong();
   if (name === "today") renderDayList();
   if (name === "auto") renderAuto();
@@ -497,6 +503,156 @@ function switchTab(name){
 function gotoToday(){ curDay = todayNo(); renderAll(); }
 function shiftDay(n){ curDay = Math.min(360, Math.max(1, curDay + n)); stopPlayer(); renderAll(); }
 function renderAll(){ renderAuto(); renderDayList(); renderCal(); updateHeader(); }
+
+// ---------- 阶段阅读馆（完成每阶段解锁对应水平文章，趣味+成就感） ----------
+const PHASE_READS = [
+  { pn:1, id:"p1a", title:"我的早晨 My Morning", en:"I wake up. I eat bread. I drink milk. I go to school. I see my friends. We say hello. We are happy.", zh:"我醒来。我吃面包。我喝牛奶。我去上学。我见到我的朋友。我们说你好。我们很开心。",
+    words:[["wake up","醒来"],["bread","面包"],["drink","喝"],["milk","牛奶"],["happy","开心的"]],
+    qs:[["What does the writer do first in the morning?",["Eat bread","Drink milk","Wake up","Go to school"],2],["Where does the writer go?",["Park","School","Shop","Home"],1],["How does the writer feel at school?",["Sad","Tired","Angry","Happy"],3]],
+    tip:"☀️ 用最简单的词写你的一天——读完后试试用英语说说你自己的早晨！" },
+  { pn:1, id:"p1b", title:"一只叫咪咪的猫 A Cat Named Mimi", en:"Mimi is a cat. Mimi is white. Mimi likes fish. Mimi sleeps a lot. I love Mimi.", zh:"咪咪是一只猫。咪咪是白色的。咪咪喜欢鱼。咪咪睡很多觉。我爱咪咪。",
+    words:[["cat","猫"],["white","白色"],["fish","鱼"],["sleep","睡觉"],["love","爱"]],
+    qs:[["What color is Mimi?",["Black","White","Brown","Orange"],1],["What does Mimi like?",["Rice","Fish","Meat","Milk"],1],["What does Mimi do a lot?",["Runs","Sleeps","Sings","Swims"],1]],
+    tip:"🐱 每个句子只有 3-4 个词——零基础也能读懂！" },
+  { pn:2, id:"p2a", title:"我最好的朋友 My Best Friend", en:"Tom is my best friend. He is tall and kind. We play basketball every weekend. He likes music, and I like movies. Last Sunday we watched a funny film together. We laughed a lot. Good friends make life happy.", zh:"汤姆是我最好的朋友。他又高又善良。我们每周末打篮球。他喜欢音乐，我喜欢电影。上周日我们一起看了一部有趣的电影。我们笑了很久。好朋友让生活快乐。",
+    words:[["best friend","最好的朋友"],["kind","善良的"],["weekend","周末"],["funny","有趣的"],["laugh","笑"]],
+    qs:[["Who is Tom?",["Brother","Best friend","Teacher","Neighbor"],1],["When do they play basketball?",["Every day","On Mondays","Every weekend","Never"],2],["What did they watch last Sunday?",["A match","A funny film","A show","A game"],1]],
+    tip:"🏀 朋友话题是聊天最常用的——读完后试着介绍你最好的朋友。" },
+  { pn:2, id:"p2b", title:"在菜市场的日子 My Day at the Market", en:"I go to the market with my mother every Saturday. The market is busy and colorful. We buy vegetables, fruit, and fish. My mother is good at shopping. I help her carry bags. It is tiring but fun.", zh:"我每周六和妈妈去菜市场。市场很热闹，五颜六色。我们买蔬菜、水果和鱼。妈妈很会买东西。我帮她提袋子。很累但很有趣。",
+    words:[["market","市场"],["busy","忙碌的"],["colorful","五颜六色的"],["vegetables","蔬菜"],["tiring","累人的"]],
+    qs:[["When does the writer go to the market?",["Sunday","Saturday","Friday","Monday"],1],["What do they buy?",["Clothes","Books","Vegetables, fruit and fish","Toys"],2],["How does the writer feel?",["Boring","Scary","Sad","Tiring but fun"],3]],
+    tip:"🛒 日常生活词汇在这里出现——去菜市场时想想这些词怎么说。" },
+  { pn:3, id:"p3a", title:"丢失的钱包 The Lost Wallet", en:"Last week, I found a wallet on the street. It was full of money, but there was no name inside. I took it to the police station. The police officer smiled and said, \"You did the right thing.\" Two days later, the owner called me to say thank you. I felt proud. Honesty is always the best choice.", zh:"上周，我在街上捡到一个钱包。里面装满了钱，但没有名字。我把它送到了警察局。警官笑着对我说：\"你做得对。\"两天后，失主打电话来道谢。我感到很自豪。诚实永远是最好的选择。",
+    words:[["wallet","钱包"],["police station","警察局"],["owner","失主"],["proud","自豪的"],["honesty","诚实"]],
+    qs:[["What did the writer find?",["A phone","A wallet","A key","A bag"],1],["Where did the writer take it?",["Home","The police station","School","A shop"],1],["How did the writer feel at the end?",["Scared","Angry","Proud","Sad"],2]],
+    tip:"💛 一个小故事讲一个道理——过去时态都在里面，读两遍体会时态。" },
+  { pn:3, id:"p3b", title:"海边之旅 A Trip to the Beach", en:"We drove to the beach last summer. The weather was perfect, and the sea was blue. My little sister built a sandcastle, and I swam in the water. When we were hungry, we ate seafood in a small restaurant. It was the best day of the year.", zh:"去年夏天我们开车去了海边。天气很好，海水很蓝。妹妹堆了一座沙堡，我在水里游泳。我们饿了的时候，在一家小餐馆吃了海鲜。那是一年中最棒的一天。",
+    words:[["beach","海滩"],["sandcastle","沙堡"],["swam","游泳(过去式)"],["hungry","饿的"],["seafood","海鲜"]],
+    qs:[["When did they go to the beach?",["Last winter","Last summer","Last spring","Last month"],1],["What did the little sister build?",["A house","A sandcastle","A tower","A wall"],1],["What did they eat?",["Seafood","Bread","Rice","Noodles"],0]],
+    tip:"🌊 旅游话题+过去时——读完用英语讲一件你旅行的事。" },
+  { pn:4, id:"p4a", title:"机器人能帮我们做家务吗？ Can Robots Help Us at Home?", en:"Robots are no longer just in movies. Today, some families have robots that clean floors, cut grass, or even bring drinks. Scientists say home robots will become more useful in the next ten years. They can save time, but they are still expensive. Also, some people worry that robots may take their jobs. Experts believe that robots will create new jobs instead of taking them all. The key is to learn new skills. In the future, working with robots may be as normal as using a smartphone today.", zh:"机器人不再只存在于电影里。如今一些家庭有能扫地、割草甚至端饮料的机器人。科学家说家用机器人未来十年会更有用。它们能节省时间，但依然很贵。另外，有些人担心机器人会抢走工作。专家认为机器人会创造新工作，而不是抢走所有工作。关键是要学习新技能。未来，和机器人一起工作可能就像今天用智能手机一样平常。",
+    words:[["robot","机器人"],["floor","地板"],["expensive","昂贵的"],["worry","担心"],["skill","技能"],["smartphone","智能手机"]],
+    qs:[["What can some home robots do today?",["Cook","Clean floors","Drive","Teach"],1],["Why do some people worry about robots?",["Robots are noisy","Robots may take their jobs","Robots are ugly","Robots cost nothing"],1],["What do experts believe?",["Robots will take all jobs","Robots will create new jobs","Robots will disappear","Robots will think"],1]],
+    tip:"🤖 新闻体文章——科技话题是报刊阅读的第一步。" },
+  { pn:4, id:"p4b", title:"我们为什么睡觉？ Why Do We Sleep?", en:"Sleep is not a waste of time. Scientists have found that sleep helps our brains store what we learn during the day. When you study English, your brain works hard. At night, while you sleep, it organizes the new words and sentences. That is why students who sleep well often remember more. Experts say adults need seven to nine hours of sleep every night. So, after you study, rest well — it is part of learning.", zh:"睡觉不是浪费时间。科学家发现睡眠帮助大脑储存白天学到的东西。你学英语时，大脑很努力。夜里睡觉时，它整理新单词和句子。这就是为什么睡眠好的学生往往记得更多。专家说成年人每晚需要七到九小时睡眠。所以学完之后好好休息——休息也是学习的一部分。",
+    words:[["waste","浪费"],["brain","大脑"],["store","储存"],["organize","整理"],["adult","成年人"]],
+    qs:[["What does sleep do for the brain?",["Stops it","Helps store what we learn","Makes it fast","Nothing"],1],["How many hours do adults need?",["4-5","7-9","10-12","1-2"],1],["What is sleep part of?",["Playing","Learning","Working","Eating"],1]],
+    tip:"😴 科学小知识——顺便解释了你为什么该好好睡觉！" },
+  { pn:5, id:"p5a", title:"小习惯的力量 The Power of Small Habits", en:"Everyone wants to change their life, but big changes are hard. The secret is to start small. Read one page a day, and you will finish many books in a year. Learn five words a day, and you will know almost two thousand words in a year. Small habits are easy to keep because they do not scare us. After a while, they become part of who we are. The best time to start was yesterday. The next best time is today. So pick one small habit, and start right now — your future self will thank you.", zh:"每个人都想改变生活，但大改变很难。秘诀是从小处开始。每天读一页，一年能读完很多本书。每天学五个词，一年就认识近两千个词。小习惯容易坚持，因为它们不吓人。过一段时间，它们就成了我们的一部分。开始的最佳时间是昨天，其次是今天。所以挑一个小习惯，现在就开始——未来的你会感谢自己。",
+    words:[["habit","习惯"],["secret","秘诀"],["scare","吓到"],["almost","几乎"],["future","未来的"]],
+    qs:[["What is the secret of big changes?",["Start small","Do everything at once","Wait","Give up"],0],["How many words can you learn in a year with five a day?",["About 200","About 2,000","About 20,000","About 20"],1],["What does the writer say at the end?",["Give up","Wait for tomorrow","Start now","Only big plans work"],2]],
+    tip:"🌱 读完这一篇，你会更理解为什么每天 4 小时能改变你。" },
+  { pn:5, id:"p5b", title:"城市生活好还是乡村生活好？ Is City Life Better than Country Life?", en:"This question has no easy answer. Cities offer jobs, schools, and exciting nightlife, but they are crowded and noisy. The countryside is quiet and beautiful, yet it often has fewer opportunities. Some people move to cities for work, then dream of the country when they retire. Others leave the city for a simpler life and never look back. In the end, the best place is the one that fits your needs. Happiness is not about where you live — it is about how you live.", zh:"这个问题没有简单的答案。城市提供工作、学校和精彩的夜生活，但拥挤吵闹。乡村安静美丽，但机会往往更少。有人为了工作搬到城市，退休后又向往乡村。也有人离开城市去过更简单的生活，再也不回头。说到底，最好的地方是适合你的地方。幸福不在于住在哪里，而在于怎么生活。",
+    words:[["nightlife","夜生活"],["crowded","拥挤的"],["noisy","吵闹的"],["opportunity","机会"],["retire","退休"],["fit","适合"]],
+    qs:[["What do cities offer?",["Quiet","Jobs, schools and nightlife","Nothing","Farms"],1],["Why do some people leave the city?",["For a simpler life","For money","For nightlife","For school"],0],["What is the writer's conclusion?",["City is better","Country is better","Happiness is how you live","Both are bad"],2]],
+    tip:"🏙️ 议论文体——可以拿去和语伴讨论的话题。" },
+  { pn:6, id:"p6a", title:"数字时代为什么还要阅读？ Why Reading Still Matters", en:"In an age of short videos and quick messages, deep reading seems old-fashioned. Yet reading remains one of the most powerful ways to think. When we read a long article or a book, we train our minds to follow complex ideas. We learn to question, compare, and imagine. Unlike a video that tells you everything, a text asks you to build the picture yourself. This is why many successful people still read every day. Of course, short content has its place. But if we only consume what is fast, we lose the ability to think slowly and deeply. So put down your phone, pick up a book — and give your mind the workout it deserves.", zh:"在短视频和快餐信息的时代，深度阅读似乎过时了。然而阅读仍然是最强大的思考方式之一。读长文章或书时，我们训练大脑跟随复杂的观点。我们学会质疑、比较和想象。视频把一切都告诉你，而文字要求你自己构建画面。这就是为什么许多成功人士仍每天阅读。当然，短内容也有它的位置。但如果只消费快速的内容，我们就会失去缓慢而深入思考的能力。所以放下手机，拿起书——给大脑它应得的锻炼。",
+    words:[["old-fashioned","过时的"],["complex","复杂的"],["consume","消费"],["workout","锻炼"],["deserve","应得"],["article","文章"]],
+    qs:[["What does deep reading train?",["Hands","Minds to follow complex ideas","Eyes only","Memory only"],1],["How is a text different from a video?",["It is shorter","It asks you to build the picture yourself","It has sound","It is colorful"],1],["What is the writer's advice?",["Only watch videos","Read slowly and deeply","Stop reading","Read fast only"],1]],
+    tip:"📚 读完这篇，你就明白为什么第6阶段要读 TIME 和《经济学人》。" },
+  { pn:6, id:"p6b", title:"工作的未来 The Future of Work", en:"Automation and artificial intelligence are changing the way we work. Some jobs will disappear; others will be created. The real question is not whether machines will take over, but how humans can stay valuable. Machines are great at repeating tasks and processing data, but they struggle with creativity, empathy, and judgment. The workers of tomorrow will need to think, adapt, and communicate. They will change jobs several times in their lives and learn new skills continuously. In this world, the most important ability is the ability to learn. As the saying goes, education is the passport to the future — for tomorrow belongs to those who prepare for it today.", zh:"自动化和人工智能正在改变我们的工作方式。有些工作会消失，有些会被创造出来。真正的问题不是机器会不会接管，而是人类如何保持价值。机器擅长重复任务和处理数据，但在创造力、共情和判断力上很吃力。明天的劳动者需要思考、适应和沟通。他们一生中会多次更换工作，并不断学习新技能。在这个世界上，最重要的能力是学习的能力。正如那句名言：教育是通往未来的护照——因为明天属于今天做好准备的人。",
+    words:[["automation","自动化"],["artificial intelligence","人工智能"],["valuable","有价值的"],["creativity","创造力"],["empathy","共情"],["judgment","判断力"],["adapt","适应"]],
+    qs:[["What are machines great at?",["Creativity","Repeating tasks and processing data","Empathy","Judgment"],1],["What do machines struggle with?",["Data","Creativity, empathy and judgment","Counting","Repeating"],1],["What is the most important ability?",["The ability to learn","The ability to type","The ability to drive","The ability to sing"],0]],
+    tip:"🚀 目标水平的阅读——能读懂这一篇，报刊对你就不再是障碍。" }
+];
+function phaseDone(pn){
+  const from = (pn - 1) * 60 + 1, to = pn * 60;
+  for (let d = from; d <= to; d++){ if (!hasPass(d)) return false; }
+  return true;
+}
+function readLogGet(){ return LS.get("en360_reads", {}); }
+function markRead(id){
+  const lg = readLogGet(); lg[id] = 1; LS.set("en360_reads", lg);
+  renderRead();
+}
+function splitSent(en){ return en.split(/(?<=[.!?])\s+/); }
+function renderRead(){
+  const wrap = document.getElementById("readWrap");
+  if (!wrap) return;
+  const lg = readLogGet();
+  const total = PHASE_READS.length, done = PHASE_READS.filter(r => lg[r.id]).length;
+  let h = `<h2>📚 阶段阅读馆</h2>
+    <div class="phase">完成每个阶段（全部60天过关）后解锁对应水平的阅读——越读越有趣，词汇量也在这里长大。已读 <b>${done}/${total}</b> 篇${done === total ? " 🏆 全部读完！" : ""}</div>`;
+  for (let pn = 1; pn <= 6; pn++){
+    const unlocked = phaseDone(pn);
+    const items = PHASE_READS.filter(r => r.pn === pn);
+    const dCount = items.filter(r => lg[r.id]).length;
+    h += `<div class="card" style="margin-bottom:12px">
+      <h3>第${pn}阶段 · ${["语音入门","基础积累","初级进阶","中级","中高级","高级冲刺"][pn-1]} ${unlocked ? "✅ 已解锁" : "🔒 未解锁"}</h3>
+      <div class="phase" style="font-size:13px">${unlocked ? "本阶段已读 " + dCount + "/" + items.length + " 篇" : "🔒 完成第" + pn + "阶段（第" + ((pn-1)*60+1) + "-" + (pn*60) + "天全部过关）后解锁。已读 " + dCount + "/" + items.length + " 篇。"}</div>`;
+    if (unlocked){
+      items.forEach(r => {
+        h += `<div class="readitem" style="border:1px solid #e3e8f2;border-radius:8px;padding:10px;margin:8px 0">
+          <b>${esc(r.title)}</b> ${lg[r.id] ? `<span style="color:#70AD47">✅ 已读</span>` : ""}
+          <div style="font-size:13px;color:#666;margin:4px 0">${esc(r.tip)}</div>
+          <button class="btn" style="padding:3px 12px;font-size:12px" onclick="readPanel('${r.id}')">📖 阅读</button>
+          <button class="btn orange" style="padding:3px 12px;font-size:12px" onclick="readQuiz('${r.id}')">🎯 理解测验</button>
+          ${lg[r.id] ? "" : `<button class="btn green" style="padding:3px 12px;font-size:12px" onclick="markRead('${r.id}')">✅ 读完打卡</button>`}
+          <div class="readpanel hidden" id="rp_${r.id}"></div>
+        </div>`;
+      });
+    }
+    h += `</div>`;
+  }
+  wrap.innerHTML = h;
+}
+function readPanel(id){
+  const r = PHASE_READS.find(x => x.id === id);
+  if (!r) return;
+  const el = document.getElementById("rp_" + id);
+  if (!el) return;
+  if (!el.classList.contains("hidden")){ el.classList.add("hidden"); return; }
+  el.classList.remove("hidden");
+  el.innerHTML = `<div style="background:#f7f9ff;border-radius:8px;padding:10px;margin-top:8px">
+    <button class="btn" style="padding:3px 12px;font-size:12px" onclick="speak('${r.en.replace(/'/g,"\\'")}')">🔊 朗读整篇</button>
+    <div style="margin:8px 0;line-height:1.8">${splitSent(r.en).map(s => `<span style="cursor:pointer;color:#1F3864" onclick="speak('${s.replace(/'/g,"\\'")}')">${esc(s)}</span> `).join("")}</div>
+    <button class="btn" style="padding:3px 12px;font-size:12px" onclick="this.nextElementSibling.classList.toggle('hidden')">👁️ 中文翻译</button>
+    <div class="hidden" style="color:#666;margin:6px 0">${esc(r.zh)}</div>
+    <div>📝 生词：${r.words.map(w => `<span style="background:#eef2fb;border-radius:4px;padding:2px 6px;margin:2px;font-size:12px"><b>${esc(w[0])}</b> ${esc(w[1])}</span>`).join("")}</div>
+    <button class="btn green" style="margin-top:6px" onclick="readQuiz('${id}')">🎯 理解测验</button>
+  </div>`;
+}
+let rqState = null;
+function readQuiz(id){
+  const r = PHASE_READS.find(x => x.id === id);
+  if (!r) return;
+  const el = document.getElementById("rp_" + id);
+  if (el && el.classList.contains("hidden")) el.classList.remove("hidden");
+  const host = el || document.getElementById("readWrap");
+  const old = document.getElementById("rq_" + id); if (old) old.remove();
+  const qwrap = document.createElement("div");
+  qwrap.id = "rq_" + id;
+  qwrap.innerHTML = `<b>🎯 理解测验（${esc(r.title)}）</b><div id="rqb_${id}"></div>`;
+  host.appendChild(qwrap);
+  rqState = {id, i:0, right:0};
+  rqRender(id);
+}
+function rqRender(id){
+  const r = PHASE_READS.find(x => x.id === id);
+  const box = document.getElementById("rqb_" + id);
+  if (!r || !box || !rqState) return;
+  if (rqState.i >= r.qs.length){
+    const score = Math.round(rqState.right / r.qs.length * 100);
+    box.innerHTML = `<div class="scoreline">得分 ${rqState.right}/${r.qs.length}（${score}分）${score >= 80 ? " 🎉 理解到位！" : " 再读一遍文章会更好"}</div>
+      <button class="btn green" onclick="markRead('${id}')">✅ 读完打卡</button>`;
+    return;
+  }
+  const q = r.qs[rqState.i];
+  let h = `<div class="qbox"><div class="q">第 ${rqState.i+1}/${r.qs.length} 题：${esc(q[0])}</div>`;
+  q[1].forEach((o, k) => { h += `<button class="opt" onclick="rqPick('${id}',${k},${q[2]})">${esc(o)}</button>`; });
+  box.innerHTML = h + `</div>`;
+}
+function rqPick(id, k, ans){
+  const box = document.getElementById("rqb_" + id);
+  if (!box || !rqState) return;
+  const ok = k === ans;
+  if (ok) rqState.right++;
+  box.querySelectorAll(".opt").forEach((b, i2) => { if (i2 === ans) b.classList.add("right"); else if (i2 === k) b.classList.add("wrong"); });
+  box.innerHTML += `<div class="fb ${ok ? "ok" : "no"}">${ok ? "✅ 正确！" : "❌ 答错，正确答案已标绿"}</div>
+    <button class="btn" onclick="rqNext('${id}')">下一题</button>`;
+  rqState.i++;
+}
+function rqNext(id){ rqRender(id); }
 
 // ---------- 每日输入任务（读/听/说 阶梯：词汇和语感的真正来源） ----------
 const INPUT_PHASES = {
@@ -1636,6 +1792,7 @@ function clearAllProgress(btn){
   LS.set("en360_wrong", wrong);
   LS.set("en360_inputLog", {});
   LS.set("en360_quizDone", {});
+  LS.set("en360_reads", {});
   btn.textContent = "✅ 已清空全部进度";
   setTimeout(() => { btn.textContent = "清空全部进度（保留开始日期）"; }, 3000);
   stopPlayer();
@@ -1656,6 +1813,7 @@ function fullReset(btn){
   localStorage.removeItem("en360_iron");
   localStorage.removeItem("en360_rate");
   localStorage.removeItem("en360_quizDone");
+  localStorage.removeItem("en360_reads");
   btn.textContent = "✅ 已重置，页面将刷新";
   setTimeout(() => location.reload(), 800);
 }
@@ -1685,6 +1843,7 @@ function exportProgress(){
     en360_iron: localStorage.getItem("en360_iron"),
     en360_rate: localStorage.getItem("en360_rate"),
     en360_quizDone: localStorage.getItem("en360_quizDone"),
+    en360_reads: localStorage.getItem("en360_reads"),
     exportedAt: new Date().toISOString()
   };
   try {
@@ -1710,7 +1869,7 @@ function importProgress(){
     try {
       const data = JSON.parse(rd.result);
       let n = 0;
-      ["en360_start","en360_checks","en360_pass","en360_wrong","en360_cn","en360_phaseSeen","en360_mastery","en360_hours","en360_lock","en360_lockedReview","en360_inputLog","en360_iron","en360_rate","en360_quizDone"].forEach(k => {
+      ["en360_start","en360_checks","en360_pass","en360_wrong","en360_cn","en360_phaseSeen","en360_mastery","en360_hours","en360_lock","en360_lockedReview","en360_inputLog","en360_iron","en360_rate","en360_quizDone","en360_reads"].forEach(k => {
         if (data[k] != null && data[k] !== "undefined"){ localStorage.setItem(k, data[k]); n++; }
       });
       if (!n){ throw new Error("文件里没有进度数据"); }
