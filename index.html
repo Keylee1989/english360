@@ -296,12 +296,24 @@
         <input type="file" id="importFile" accept=".json" style="display:none" onchange="importProgress()">
       </div>
       <div style="margin-top:12px;padding-top:12px;border-top:1px dashed #e3e8f2">
-        <p class="phase"><b>🔑 进度码（记密码一样备份）</b>：点「生成进度码」得到一串密码样字符，复制存进微信收藏/记事本。换手机/换浏览器时，粘贴这串码点「恢复」就接着学，不用传文件。</p>
+        <p class="phase"><b>方式一：进度码（不用记密码，最简单）</b>——生成→复制→存进微信收藏/记事本；换设备时粘贴→恢复。</p>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0">
           <button class="btn green" onclick="genCode()">🔑 生成进度码</button>
           <button class="btn" onclick="copyCode()">📋 复制进度码</button>
-          <input type="text" id="codeIn" placeholder="粘贴进度码（E360. 开头）" style="flex:1;min-width:180px;padding:8px;border:1px solid #d5dbe8;border-radius:8px;font-size:13px">
-          <button class="btn" onclick="restoreCode()">↩️ 用进度码恢复</button>
+        </div>
+      </div>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px dashed #e3e8f2">
+        <p class="phase"><b>方式二：自己的密码（🔒 加密版，用你记得住的密码）</b>——输入你自己的密码生成加密码；这串码没有你的密码谁也解不开，密码忘了码就作废，所以密码别忘。</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0">
+          <input type="password" id="passIn" placeholder="输入你自己的密码（如 2026 或一句好记的话）" style="flex:1;min-width:180px;padding:8px;border:1px solid #d5dbe8;border-radius:8px;font-size:13px">
+          <button class="btn green" onclick="genEncCode()">🔒 生成加密进度码</button>
+        </div>
+      </div>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px dashed #e3e8f2">
+        <p class="phase"><b>恢复（两种码都在这里恢复，自动识别）</b></p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0">
+          <input type="text" id="codeIn" placeholder="粘贴进度码（E360. 开头）或加密码（E360P. 开头）" style="flex:1;min-width:180px;padding:8px;border:1px solid #d5dbe8;border-radius:8px;font-size:13px">
+          <button class="btn" onclick="restoreCode()">↩️ 恢复进度</button>
         </div>
         <textarea id="codeOut" class="hidden" readonly style="width:100%;height:90px;margin-top:6px;font-size:12px;word-break:break-all;box-sizing:border-box;padding:8px;border:1px solid #d5dbe8;border-radius:8px;background:#f7f9fd;color:#444"></textarea>
       </div>
@@ -391,7 +403,7 @@ let mastery = LS.get("en360_mastery", {});
 let hours = LS.get("en360_hours", 4);
 let iron = LS.get("en360_iron", 1);
 let quizDone = LS.get("en360_quizDone", {});
-const APP_VERSION = "2026-08-12-v6";
+const APP_VERSION = "2026-08-12-v7";
 let curDay = 1;
 
 // ---------- 基础 ----------
@@ -1855,14 +1867,18 @@ function codeMsg(m){
   clearTimeout(el._t);
   el._t = setTimeout(() => el.classList.add("hidden"), 8000);
 }
-function genCode(){
+// 收集全部进度数据并压缩（两种方式共用）
+function collectProgress(){
   const keys = ["en360_start","en360_checks","en360_pass","en360_wrong","en360_cn","en360_phaseSeen","en360_mastery","en360_hours","en360_lock","en360_lockedReview","en360_inputLog","en360_iron","en360_rate","en360_quizDone","en360_reads"];
   const d = {};
   keys.forEach(k => { const v = localStorage.getItem(k); if (v != null && v !== "undefined"){ try { d[k] = JSON.parse(v); } catch(e){} } });
   // 打卡明细/测验记录压缩成十六进制，进度码短一半以上
   if (d.en360_checks) d.en360_checks = packMap(d.en360_checks, 24);
   if (d.en360_quizDone) d.en360_quizDone = packMap(d.en360_quizDone, 24);
-  const obj = { v: 1, at: new Date().toISOString(), d: d };
+  return { v: 1, at: new Date().toISOString(), d: d };
+}
+function genCode(){
+  const obj = collectProgress();
   let b64 = btoa(unescape(encodeURIComponent(JSON.stringify(obj)))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
   const code = "E360." + b64;
   const ta = document.getElementById("codeOut");
@@ -1871,22 +1887,103 @@ function genCode(){
 }
 function copyCode(){
   const ta = document.getElementById("codeOut");
-  if (!ta || !ta.value){ codeMsg("⚠️ 请先点「生成进度码」", false); return; }
+  if (!ta || !ta.value){ codeMsg("⚠️ 请先点「生成进度码」或「生成加密进度码」", false); return; }
   ta.classList.remove("hidden");
   ta.select();
   ta.setSelectionRange(0, 9999999);
   let ok = false;
   try { ok = document.execCommand("copy"); } catch(e){}
-  codeMsg(ok ? "✅ 已复制！请粘贴到微信收藏/备忘录/记事本里存好（这就是你的「密码」）" : "✅ 已选中整串进度码，请按 Ctrl+C 复制（手机长按文字复制）");
+  codeMsg(ok ? "✅ 已复制！请粘贴到微信收藏/备忘录/记事本里存好" : "✅ 已选中整串码，请按 Ctrl+C 复制（手机长按文字复制）");
+}
+
+// ---------- 用自己的密码加密进度（E360P. 开头） ----------
+// 纯JS实现、不依赖浏览器加密接口：本地文件打开也能用
+// 原理：密码+随机盐→派生随机字节流→逐字节打乱进度数据。没有密码无法还原；同一密码每次生成的码也不同
+function _fnv(s){
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+  return h >>> 0;
+}
+function _stretch(seed, rounds){
+  let s = seed >>> 0;
+  for (let i = 0; i < rounds; i++){
+    s ^= s << 13; s >>>= 0;
+    s ^= s >>> 17;
+    s ^= s << 5; s >>>= 0;
+    s = Math.imul(s + 0x9E3779B9, 2654435761) >>> 0;
+  }
+  return s >>> 0;
+}
+function _stream(seed, len){
+  let s = seed >>> 0;
+  const out = new Uint8Array(len);
+  for (let i = 0; i < len; i++){
+    s ^= s << 13; s >>>= 0;
+    s ^= s >>> 17;
+    s ^= s << 5; s >>>= 0;
+    out[i] = s & 0xff;
+  }
+  return out;
+}
+function _b64url(bytes){
+  let bin = "";
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function _b64urlDec(s){
+  s = s.replace(/-/g, "+").replace(/_/g, "/");
+  while (s.length % 4) s += "=";
+  const bin = atob(s);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
+function encWithPass(json, pass){
+  const salt = Math.floor(Math.random() * 0xffffffff) >>> 0;
+  const seed = _stretch(_fnv(pass + "::e360::" + salt.toString(16)), 3000);
+  const data = new TextEncoder().encode(json);
+  const key = _stream(seed, data.length);
+  const out = new Uint8Array(data.length);
+  for (let i = 0; i < data.length; i++) out[i] = data[i] ^ key[i];
+  return "E360P." + salt.toString(16) + "." + _b64url(out);
+}
+function decWithPass(code, pass){
+  const m = code.match(/^E360P\.([0-9a-f]+)\.(.+)$/);
+  if (!m) throw new Error("bad");
+  const salt = parseInt(m[1], 16);
+  const seed = _stretch(_fnv(pass + "::e360::" + salt.toString(16)), 3000);
+  const enc = _b64urlDec(m[2]);
+  const key = _stream(seed, enc.length);
+  const out = new Uint8Array(enc.length);
+  for (let i = 0; i < enc.length; i++) out[i] = enc[i] ^ key[i];
+  return new TextDecoder().decode(out);
+}
+function genEncCode(){
+  const pass = document.getElementById("passIn").value;
+  if (!pass){ codeMsg("⚠️ 请先输入你自己的密码（比如生日、好记的一句话）", false); return; }
+  const obj = collectProgress();
+  const code = encWithPass(JSON.stringify(obj), pass);
+  const ta = document.getElementById("codeOut");
+  if (ta){ ta.value = code; ta.classList.remove("hidden"); }
+  codeMsg("✅ 已用你的密码加密生成进度码（E360P. 开头，约 " + Math.max(1, Math.round(code.length / 1024 * 10) / 10) + " KB）。复制存好；以后恢复：粘贴这串码 + 输入同一个密码。⚠️ 密码忘了这串码就作废");
 }
 function restoreCode(){
   const inp = document.getElementById("codeIn");
   const code = (inp ? inp.value : "").trim();
-  if (!code){ codeMsg("⚠️ 请先粘贴你的进度码（E360. 开头）", false); return; }
+  if (!code){ codeMsg("⚠️ 请先粘贴进度码（E360. 开头）或加密码（E360P. 开头）", false); return; }
+  const enc = code.indexOf("E360P.") === 0;
+  const pass = enc ? document.getElementById("passIn").value : null;
+  if (enc && !pass){ codeMsg("⚠️ 这是加密进度码：请在「方式二」输入你的密码后再点「恢复进度」", false); return; }
   try {
-    let b64 = code.replace(/^E360\./, "").replace(/-/g, "+").replace(/_/g, "/");
-    while (b64.length % 4) b64 += "=";
-    const obj = JSON.parse(decodeURIComponent(escape(atob(b64))));
+    let json;
+    if (enc){
+      json = decWithPass(code, pass);
+    } else {
+      let b64 = code.replace(/^E360\./, "").replace(/-/g, "+").replace(/_/g, "/");
+      while (b64.length % 4) b64 += "=";
+      json = decodeURIComponent(escape(atob(b64)));
+    }
+    const obj = JSON.parse(json);
     if (!obj || obj.v !== 1 || !obj.d){ throw new Error("bad format"); }
     const d = obj.d;
     if (d.en360_checks) d.en360_checks = unpackMap(d.en360_checks, 24);
@@ -1903,10 +2000,10 @@ function restoreCode(){
     iron = LS.get("en360_iron", 1);
     quizDone = LS.get("en360_quizDone", {});
     const startD = d.en360_start ? String(d.en360_start).slice(0, 10) : "未设";
-    codeMsg("✅ 恢复成功！已从进度码恢复 " + n + " 项数据（开始日期 " + startD + "），现在就能接着学");
+    codeMsg("✅ 恢复成功！已恢复 " + n + " 项数据（开始日期 " + startD + "），现在就能接着学");
     renderAll();
   } catch(e){
-    codeMsg("⚠️ 进度码无效或已损坏：请重新从原设备复制（注意别漏字符、别带空格回车）", false);
+    codeMsg(enc ? "⚠️ 密码不对或码已损坏：请确认输入的密码和生成时完全一样（注意大小写、空格）" : "⚠️ 进度码无效或已损坏：请重新从原设备复制（注意别漏字符、别带空格回车）", false);
   }
 }
 
