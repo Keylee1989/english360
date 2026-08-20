@@ -493,6 +493,34 @@ html.dark .vb-grammar-box{background:#1e2640}
       </div>
       <div class="tip hidden" id="cloudMsg" style="margin-top:6px"></div>
     </div>
+    <div class="card" style="border:2px solid #e8f0fe;margin-top:12px">
+      <h3>🤖 AI 助手设置</h3>
+      <p class="phase">选择内置知识库(免费/离线)或接入外部AI(更智能/需API Key)</p>
+      <div style="margin:10px 0">
+        <label style="font-size:14px;font-weight:bold">AI 来源：</label>
+        <select id="aiProvider" onchange="onAIProviderChange()" style="width:100%;padding:8px;margin-top:4px;border-radius:8px;border:1px solid #ddd">
+          <option value="builtin">📚 内置知识库(免费/离线)</option>
+          <option value="deepseek">🔵 DeepSeek AI(推荐/便宜)</option>
+          <option value="openai">🟢 OpenAI GPT(最强大)</option>
+        </select>
+      </div>
+      <div id="aiExternalConfig" style="display:none">
+        <div style="margin:8px 0"><label style="font-size:13px;font-weight:bold">API Key：</label>
+          <input id="aiKey" type="password" placeholder="粘贴你的 API Key" style="width:100%;padding:8px;border-radius:8px;border:1px solid #ddd;margin-top:4px"></div>
+        <div style="margin:8px 0"><label style="font-size:13px;font-weight:bold">模型：</label>
+          <select id="aiModel" style="width:100%;padding:8px;border-radius:8px;border:1px solid #ddd">
+            <option value="deepseek-chat">DeepSeek Chat(推荐/便宜)</option>
+            <option value="deepseek-coder">DeepSeek Coder</option>
+            <option value="gpt-3.5-turbo">GPT-3.5 Turbo(便宜)</option>
+            <option value="gpt-4o-mini">GPT-4o Mini(推荐)</option>
+            <option value="gpt-4o">GPT-4o(最强)</option>
+          </select></div>
+        <div style="margin:8px 0"><label style="font-size:13px;font-weight:bold">自定义接口地址(可选)：</label>
+          <input id="aiEndpoint" placeholder="默认用官方地址" style="width:100%;padding:8px;border-radius:8px;border:1px solid #ddd;margin-top:4px"></div>
+      </div>
+      <button class="btn green" onclick="saveAIConfig()" style="margin-top:8px">💾 保存设置</button>
+      <div style="margin-top:8px;font-size:12px;color:#888">DeepSeek Key 去 <a href="https://platform.deepseek.com/" target="_blank">platform.deepseek.com</a> 注册(新用户送500万token)<br>OpenAI Key 去 <a href="https://platform.openai.com/" target="_blank">platform.openai.com</a></div>
+    </div>
   </section>
 
   <section id="tab-wrong" class="hidden">
@@ -576,7 +604,7 @@ html.dark .vb-grammar-box{background:#1e2640}
       <div id="askChat" style="max-height:400px;overflow-y:auto;margin:10px 0;padding:10px;background:#f8f9fc;border-radius:10px"></div>
       <div style="display:flex;gap:8px;margin-top:8px">
         <input class="search" id="askInput" placeholder="用中文提问，如：怎么说"谢谢"？ / 为什么用 is 不用 am？" style="flex:1;margin:0">
-        <button class="btn" onclick="askAI()">问我</button>
+        <button class="btn" onclick="askAIFull()">问我</button>
       </div>
       <div class="tip" style="margin-top:8px">💡 示例问题：怎么说"我爱你"？/ 为什么 I is 错了？/ "a" 和 "the" 有什么区别？/ 怎么背单词更快？</div>
     </div>
@@ -3066,14 +3094,16 @@ const AI_KB = [
   ];
 
 function askAIFull(){
-  var input = document.getElementById('aiInput');
-  var el = document.getElementById('aiResult');
-  if(!input||!el) return;
-  var q = input.value.trim();
-  if(!q){ backupMsg('请输入问题',false); return; }
+  var inp = document.getElementById('askInput');
+  var chat = document.getElementById('askChat');
+  if(!inp||!chat) return;
+  var q = inp.value.trim();
+  if(!q) return;
+  inp.value = '';
+  chat.innerHTML += '<div style="text-align:right;margin:6px 0"><span style="background:#2F5BD6;color:#fff;padding:8px 12px;border-radius:12px 12px 2px 12px;display:inline-block;max-width:80%;text-align:left;font-size:14px">'+esc(q)+'</span></div>';
   var cfg = getAIConfig();
-  if(cfg.provider==='builtin'||!cfg.apiKey){ askAI(); return; }
-  el.innerHTML = '<div class="vb-card" style="text-align:center"><b>🤖 AI 正在思考...</b></div>';
+  if(cfg.provider==='builtin'||!cfg.apiKey){ _doBuiltinAsk(q, chat); return; }
+  chat.innerHTML += '<div style="margin:6px 0"><span style="background:#f0f0f0;padding:8px 12px;border-radius:12px 12px 12px 2px;display:inline-block;font-size:14px">🤖 AI 正在思考...</span></div>';
   var systemPrompt = '你是一个英语学习助手。用户是中国人零基础学英语。请用中文回答，给出清晰易懂的解释。涉及英语请给音标、例句、搭配、记忆方法。回答简洁实用。';
   var endpoint = cfg.endpoint||(cfg.provider==='deepseek'?'https://api.deepseek.com/v1/chat/completions':'https://api.openai.com/v1/chat/completions');
   fetch(endpoint, {
@@ -3081,11 +3111,14 @@ function askAIFull(){
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+cfg.apiKey},
     body:JSON.stringify({model:cfg.model||'deepseek-chat',messages:[{role:'system',content:systemPrompt},{role:'user',content:q}],max_tokens:800,temperature:0.7})
   }).then(function(r){return r.json();}).then(function(data){
+    // Remove loading indicator
+    var loads = chat.querySelectorAll('span');
+    loads.forEach(function(s){ if(s.textContent.indexOf('正在思考')>=0) s.parentElement.remove(); });
     if(data.choices&&data.choices[0]){
       var a=data.choices[0].message.content.replace(/\*\*(.*?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>');
-      el.innerHTML='<div class="vb-card"><div style="font-size:14px;line-height:1.8">'+a+'</div></div>';
-    } else if(data.error){ el.innerHTML='<div class="vb-card" style="color:#c62828">❌ API错误：'+data.error.message+'</div>'; }
-  }).catch(function(err){ el.innerHTML='<div class="vb-card" style="color:#c62828">❌ 连接失败：'+err.message+'</div>'; });
+      chat.innerHTML+='<div style="margin:6px 0"><span style="background:#f0f0f0;padding:8px 12px;border-radius:12px 12px 12px 2px;display:inline-block;max-width:80%;font-size:14px;line-height:1.7">'+a+'</span></div>';
+    } else if(data.error){ chat.innerHTML+='<div style="margin:6px 0;color:#c62828;font-size:13px">❌ API错误：'+data.error.message+'</div>'; }
+  }).catch(function(err){ chat.innerHTML+='<div style="margin:6px 0;color:#c62828;font-size:13px">❌ 连接失败：'+err.message+'</div>'; });
 }
 
 function askAI(){
@@ -3096,12 +3129,17 @@ function askAI(){
   if (!q) return;
   inp.value = '';
   chat.innerHTML += '<div style="text-align:right;margin:6px 0"><span style="background:#2F5BD6;color:#fff;padding:8px 12px;border-radius:12px 12px 2px 12px;display:inline-block;max-width:80%;text-align:left;font-size:14px">' + esc(q) + '</span></div>';
+  _doBuiltinAsk(q, chat);<br>1. 去「知识回顾」页搜索关键词<br>2. 去「自动学习」页找对应语法点的深度拆解<br>3. 换个更简单的中文词再问我一次';
+  AI_KB.forEach(function(kb){ var low=q.toLowerCase(); if(kb.k.some(function(k){ return low.includes(k); })){ a = typeof kb.a === 'function' ? kb.a(q) : kb.a; } });
+  chat.innerHTML += '<div style="text-align:left;margin:6px 0"><span style="background:#f0f4ff;padding:8px 12px;border-radius:2px 12px 12px 12px;display:inline-block;max-width:80%;font-size:14px;line-height:1.6">' + a + '</span></div>';chat.scrollTop = chat.scrollHeight;
+}
+function _doBuiltinAsk(q, chat){
   var a = '抱歉，这个问题我不太确定。你可以：<br>1. 去「知识回顾」页搜索关键词<br>2. 去「自动学习」页找对应语法点的深度拆解<br>3. 换个更简单的中文词再问我一次';
   AI_KB.forEach(function(kb){ var low=q.toLowerCase(); if(kb.k.some(function(k){ return low.includes(k); })){ a = typeof kb.a === 'function' ? kb.a(q) : kb.a; } });
   chat.innerHTML += '<div style="text-align:left;margin:6px 0"><span style="background:#f0f4ff;padding:8px 12px;border-radius:2px 12px 12px 12px;display:inline-block;max-width:80%;font-size:14px;line-height:1.6">' + a + '</span></div>';
   chat.scrollTop = chat.scrollHeight;
 }
-document.getElementById("askInput").addEventListener("keydown", function(e){ if(e.key==='Enter') askAI(); });
+document.getElementById("askInput").addEventListener("keydown", function(e){ if(e.key==='Enter') askAIFull(); });
 
 // ================= 自然拼读法（Phonics）教学数据 =================
 const PHONICS_RULES = [
