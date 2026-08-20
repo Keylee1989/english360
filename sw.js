@@ -1,5 +1,5 @@
 /* 英语360天学习系统 - Service Worker：离线缓存（v2：HTML网络优先，保证更新生效） */
-var CACHE = 'en360-v2';
+var CACHE = 'en360-v3';
 var ASSETS = [
   './',
   './index.html',

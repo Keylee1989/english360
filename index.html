@@ -219,6 +219,51 @@
   html.dark .deeptoggle { background:#1c2336; color:#7aa2f7; border-color:#3a4a6e; }
   html.dark .barchart .bar { background:linear-gradient(180deg,#5B7FD6,#2F5BD6); }
   html.dark .barchart .bar .vl { color:#7aa2f7; }
+
+/* ===== 分级词库 ===== */
+.vb-levels{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.vb-levels button{flex:1;min-width:120px;padding:10px 8px;border:2px solid #ddd;border-radius:10px;background:#f8f9fa;font-size:13px;cursor:pointer;transition:.2s}
+.vb-levels button.vb-active{border-color:#2F5BD6;background:#2F5BD6;color:#fff;font-weight:bold}
+.vb-levels button.vb-locked{opacity:.5;cursor:not-allowed}
+.vb-progress{height:6px;background:#e9ecef;border-radius:3px;margin:8px 0}
+.vb-progress-fill{height:100%;background:linear-gradient(90deg,#2F5BD6,#4CAF50);border-radius:3px;transition:width .3s}
+.vb-card{background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.08);padding:20px;margin:12px 0}
+.vb-word-en{font-size:32px;font-weight:800;color:#2F5BD6;margin:0}
+.vb-word-phonetic{font-size:16px;color:#888;margin:4px 0 8px}
+.vb-word-zh{font-size:18px;color:#333;margin:4px 0}
+.vb-section{background:#f0f4ff;border-radius:8px;padding:12px;margin:8px 0;font-size:14px;line-height:1.7}
+.vb-section b{color:#2F5BD6}
+.vb-tag{display:inline-block;background:#e8f0fe;color:#2F5BD6;padding:2px 8px;border-radius:12px;font-size:12px;margin:2px}
+.vb-colloc{color:#555;font-size:13px;margin:2px 0}
+.vb-example{background:#fff3cd;border-left:3px solid #ffc107;padding:8px 12px;border-radius:0 8px 8px 0;margin:6px 0;font-size:14px}
+.vb-example em{color:#2F5BD6;font-style:normal;font-weight:bold}
+.vb-phonics{background:#e8f5e9;border-left:3px solid #4CAF50;padding:8px 12px;border-radius:0 8px 8px 0;margin:6px 0;font-size:13px}
+.vb-memory{background:#fce4ec;border-left:3px solid #E91E63;padding:8px 12px;border-radius:0 8px 8px 0;margin:6px 0;font-size:14px;line-height:1.8}
+.vb-btn{padding:12px 20px;border:none;border-radius:10px;font-size:15px;cursor:pointer;font-weight:bold;margin:4px}
+.vb-btn-primary{background:#2F5BD6;color:#fff}
+.vb-btn-success{background:#4CAF50;color:#fff}
+.vb-btn-warn{background:#ff9800;color:#fff}
+.vb-btn-ghost{background:#f0f0f0;color:#555}
+.vb-quiz-opt{display:block;width:100%;text-align:left;padding:12px 16px;margin:6px 0;border:2px solid #e0e0e0;border-radius:10px;background:#fff;font-size:15px;cursor:pointer;transition:.15s}
+.vb-quiz-opt:hover{border-color:#2F5BD6;background:#f0f4ff}
+.vb-quiz-opt.correct{border-color:#4CAF50;background:#e8f5e9;color:#2e7d32}
+.vb-quiz-opt.wrong{border-color:#f44336;background:#fce4ec;color:#c62828}
+.vb-stat{display:inline-block;text-align:center;padding:8px 16px;margin:4px;background:#f8f9fa;border-radius:8px;font-size:13px}
+.vb-stat b{display:block;font-size:22px;color:#2F5BD6}
+.vb-grammar-box{background:#e3f2fd;border-radius:8px;padding:10px 14px;margin:6px 0;font-size:13px;line-height:1.7}
+.vb-grammar-box b{color:#1565c0}
+.vb-tts-row{display:flex;gap:8px;margin:8px 0;flex-wrap:wrap}
+.vb-tts-row button{padding:6px 14px;border:1px solid #ccc;border-radius:8px;background:#fff;cursor:pointer;font-size:13px}
+.vb-tts-row button:hover{background:#f0f4ff;border-color:#2F5BD6}
+html.dark .vb-card{background:#1e2744;color:#d0d6e8}
+html.dark .vb-section{background:#263050}
+html.dark .vb-quiz-opt{background:#263050;border-color:#3a4570;color:#d0d6e8}
+html.dark .vb-quiz-opt:hover{border-color:#5b7fdd}
+html.dark .vb-example{background:#2d2a1e;border-left-color:#ffc107}
+html.dark .vb-phonics{background:#1e2d1e;border-left-color:#4CAF50}
+html.dark .vb-memory{background:#2d1e28;border-left-color:#E91E63}
+html.dark .vb-grammar-box{background:#1e2640}
+
 </style>
 </head>
 <body>
@@ -246,6 +291,7 @@
   <button data-tab="res">🔗 资源表</button>
   <button data-tab="read">📚 阶段阅读</button>
   <button data-tab="words">📚 单词表</button>
+  <button data-tab="vbank">📖 分级词库</button>
   <button data-tab="dialog">🗣️ 对话闯关</button>
   <button data-tab="achieve">🏆 成就</button>
   <button data-tab="review">📖 知识回顾</button>
@@ -478,6 +524,18 @@
     </div>
   </section>
 
+  <section id="tab-vbank" class="hidden">
+    <div class="card">
+      <h2>📖 分级词库（2000→8000词汇量）</h2>
+      <p class="phase">4个级别逐级闯关：Lv1基础2000词→Lv2进阶3000词→Lv3高级5000词→Lv4终极8000词。每学10个词自动测验，过关才进下一批。</p>
+      <div id="vbLevelBar"></div>
+      <div id="vbProgress"></div>
+    </div>
+    <div id="vbCard" class="hidden"></div>
+    <div id="vbQuiz" class="hidden"></div>
+    <div id="vbResult" class="hidden"></div>
+  </section>
+
   <section id="tab-dialog" class="hidden">
     <div class="card">
       <h2>🗣️ 情景对话闯关</h2>
@@ -585,7 +643,7 @@ let mastery = LS.get("en360_mastery", {});
 let hours = LS.get("en360_hours", 4);
 let iron = LS.get("en360_iron", 1);
 let quizDone = LS.get("en360_quizDone", {});
-const APP_VERSION = "2026-08-19-v9";
+const APP_VERSION = "2026-08-20-v10";
 let curDay = 1;
 
 // ---------- 基础 ----------
@@ -712,6 +770,7 @@ function switchTab(name){
   if (name === "achieve"){ checkAch(); renderVTest(); }
   if (name === "review") renderReview();
   if (name === "help") renderFaq();
+  if (name === "vbank") renderVbank();
 }
 function gotoToday(){ curDay = todayNo(); renderAll(); }
 function shiftDay(n){ curDay = Math.min(360, Math.max(1, curDay + n)); stopPlayer(); renderAll(); }
@@ -3005,6 +3064,30 @@ const AI_KB = [
   {k:['听力','听不懂','练听力','怎么提高听力'], a: '听力提升靠「量」：<br><br><b>1. 磨耳朵</b>：系统「今日磨耳朵」一键循环播放今天的内容，洗漱/通勤/睡前放着听。<br><b>2. 精听+泛听</b>：精听 = 一句一句听写（系统有句子听写测验）；泛听 = 背景播放不用太在意（磨耳朵）。<br><b>3. 从慢到快</b>：系统语速可调（0.7x→1.0x），先慢速听懂，再加速。<br><b>4. 听真实内容</b>：VOA慢速→BBC 6 Minute→播客→新闻，阶梯提升。<br><br>关键：每天至少听30分钟。听多了自然就懂了。'},
   {k:['写作','怎么写英文','写作文','写作练习'], a: '写作从造句开始：<br><br><b>1. 每天写3句</b>：系统「每日写作」用今天学的词写3句关于自己的话，系统自动批改。<br><b>2. 仿写</b>：看到好句子，换几个词变成你自己的。<br><b>3. 写日记</b>：每天用英语写3-5句今天做了什么。<br><b>4. Grammarly</b>：第5阶段起用Grammarly检查写作（免费版够用）。<br><br>不要怕写错——先写出来，再改对。'}
   ];
+
+function askAIFull(){
+  var input = document.getElementById('aiInput');
+  var el = document.getElementById('aiResult');
+  if(!input||!el) return;
+  var q = input.value.trim();
+  if(!q){ backupMsg('请输入问题',false); return; }
+  var cfg = getAIConfig();
+  if(cfg.provider==='builtin'||!cfg.apiKey){ askAI(); return; }
+  el.innerHTML = '<div class="vb-card" style="text-align:center"><b>🤖 AI 正在思考...</b></div>';
+  var systemPrompt = '你是一个英语学习助手。用户是中国人零基础学英语。请用中文回答，给出清晰易懂的解释。涉及英语请给音标、例句、搭配、记忆方法。回答简洁实用。';
+  var endpoint = cfg.endpoint||(cfg.provider==='deepseek'?'https://api.deepseek.com/v1/chat/completions':'https://api.openai.com/v1/chat/completions');
+  fetch(endpoint, {
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+cfg.apiKey},
+    body:JSON.stringify({model:cfg.model||'deepseek-chat',messages:[{role:'system',content:systemPrompt},{role:'user',content:q}],max_tokens:800,temperature:0.7})
+  }).then(function(r){return r.json();}).then(function(data){
+    if(data.choices&&data.choices[0]){
+      var a=data.choices[0].message.content.replace(/\*\*(.*?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>');
+      el.innerHTML='<div class="vb-card"><div style="font-size:14px;line-height:1.8">'+a+'</div></div>';
+    } else if(data.error){ el.innerHTML='<div class="vb-card" style="color:#c62828">❌ API错误：'+data.error.message+'</div>'; }
+  }).catch(function(err){ el.innerHTML='<div class="vb-card" style="color:#c62828">❌ 连接失败：'+err.message+'</div>'; });
+}
+
 function askAI(){
   var inp = document.getElementById("askInput");
   var chat = document.getElementById("askChat");
@@ -3195,6 +3278,388 @@ wGrammar = function(){
   var d = DAYS[curDay-1];
   return h + resLinksForTopic(d.gname);
 };
+
+
+// ================= 分级词库系统 =================
+var VBANK_LEVELS = [
+  {id:1, name:'Lv1 基础2000词', target:2000, desc:'日常必备：问候/数字/颜色/家庭/食物/身体/时间/天气/学校/家', icon:'🌱'},
+  {id:2, name:'Lv2 进阶3000词', target:3000, desc:'情感/工作/旅行/健康/爱好/自然/科技', icon:'🌿'},
+  {id:3, name:'Lv3 高级5000词', target:5000, desc:'抽象概念/媒体/科学/商业/文化', icon:'🌳'},
+  {id:4, name:'Lv4 终极8000词', target:8000, desc:'学术/专业/政治/法律/哲学', icon:'🏔️'}
+];
+var VBANK_DATA = {
+1:[
+{e:"hello",z:"你好",p:"哈喽",m:"见面就说"哈喽"，全世界通用打招呼词。记忆：哈(hā)喽(lóu) = hello",ph:"he·l·lo → /həˈləʊ/",ex:["Hello, my name is Li Ming.","你好，我叫李明。"],col:["say hello 说你好","Hello! How are you? 你好吗？"],topic:"问候",gram:"打招呼用一般现在时，Hello比Hi更正式"},
+{e:"goodbye",z:"再见",p:"古德拜",m:"good=好+bye=走→好走=再见。记忆：古德拜→好走啦",ph:"good·bye → /ɡʊdˈbaɪ/",ex:["Goodbye! See you tomorrow.","再见！明天见。"],col:["say goodbye 道别","Goodbye for now 暂时再见"],topic:"问候",gram:"bye是goodbye的缩写"},
+{e:"thank",z:"感谢",p:"散可",m:"散(sàn)可→散开的感谢→谢谢",ph:"th·ank → /θæŋk/",ex:["Thank you very much!","非常感谢！"],col:["thank you 谢谢你","thank God 谢天谢地"],topic:"礼貌用语",gram:"thank是动词，后接宾语you/him等"},
+{e:"water",z:"水",p:"沃特",m:"我渴了要"沃特"(喝)水",ph:"wa·ter → /ˈwɔːtə/",ex:["I drink water every day.","我每天喝水。"],col:["cold water 冷水","drink water 喝水"],topic:"食物饮料",gram:"water是不可数名词，不能说waters"},
+{e:"food",z:"食物",p:"福德",m:"福德(服务)→有食物的地方",ph:"f·oo·d → /fuːd/",ex:["The food is delicious.","食物很好吃。"],col:["fast food 快餐","healthy food 健康食品"],topic:"食物饮料",gram:"food统称食物，meal指一餐"},
+{e:"house",z:"房子",p:"好斯",m:"好(hǎo)斯→好房子",ph:"h·ou·se → /haʊs/",ex:["This is my house.","这是我的房子。"],col:["house home 家","in the house 在房子里"],topic:"家",gram:"house=建筑物，home=抽象的家"},
+{e:"family",z:"家庭",p:"发milly",m:"发(fā)milly→发了个milly给家人",ph:"fa·mi·ly → /ˈfæməli/",ex:["My family is very big.","我的家庭很大。"],col:["family member 家庭成员","family name 姓"],topic:"家庭",gram:"family作整体用单数，成员用复数"},
+{e:"school",z:"学校",p:"思酷",m:"思(sī)酷→学校很酷",ph:"sch·ool → /skuːl/",ex:["I go to school every day.","我每天去上学。"],col:["go to school 去上学","at school 在学校"],topic:"学校",gram:"go to school=去上学(不加the)"},
+{e:"friend",z:"朋友",p:"芙润的",m:"芙蓉的朋友→好朋友",ph:"fr·i·end → /frend/",ex:["She is my best friend.","她是我最好的朋友。"],col:["best friend 最好的朋友","make friends 交朋友"],topic:"社交",gram:"make friends用复数，因为交朋友至少两人"},
+{e:"happy",z:"开心的",p:"嗨皮",m:"嗨皮→开心",ph:"hap·py → /ˈhæpi/",ex:["I am very happy today.","我今天很开心。"],col:["feel happy 感到开心","happy birthday 生日快乐"],topic:"情感",gram:"happy是形容词，be+happy"},
+{e:"big",z:"大的",p:"比格",m:"比格(哥)大→大",ph:"b·ig → /bɪɡ/",ex:["The elephant is very big.","大象很大。"],col:["big man 大人物","big deal 大事"],topic:"描述",gram:"big=大的，反义词small=小的"},
+{e:"small",z:"小的",p:"斯莫",m:"斯莫(斯磨)→小的慢慢磨",ph:"sm·all → /smɔːl/",ex:["The cat is small.","猫很小。"],col:["small talk 闲聊","small size 小号"],topic:"描述",gram:"small比little更客观，little带感情色彩"},
+{e:"one",z:"一",p:"万",m:"万→一万个一",ph:"one → /wʌn/",ex:["I have one book.","我有一本书。"],col:["one by one 一个接一个","one day 有一天"],topic:"数字",gram:"one是基数词，first是序数词"},
+{e:"red",z:"红色",p:"热的",m:"红红的→热的",ph:"r·ed → /red/",ex:["I like the red flower.","我喜欢那朵红花。"],col:["red wine 红酒","see red 暴怒"],topic:"颜色",gram:"颜色作名词和形容词都行"},
+{e:"mother",z:"妈妈",p:"妈zher",m:"妈妈→妈妈",ph:"mo·ther → /ˈmʌðə/",ex:["My mother is a teacher.","我妈妈是老师。"],col:["mother tongue 母语"],topic:"家庭",gram:"mother=mom=mum"},
+{e:"eat",z:"吃",p:"伊特",m:"伊特→吃一口",ph:"ea·t → /iːt/",ex:["Let's eat lunch.","我们吃午饭吧。"],col:["eat out 下馆子","eat breakfast 吃早饭"],topic:"食物饮料",gram:"eat=吃，have breakfast更常用"},
+{e:"go",z:"去",p:"够",m:"够→够了就走，go",ph:"g·o → /ɡəʊ/",ex:["I go to work by bus.","我坐公交上班。"],col:["go home 回家","go shopping 购物"],topic:"动词",gram:"go+to+地点，go+doing做某事"},
+{e:"like",z:"喜欢",p:"赖可",m:"赖(lài)可→赖着可以→喜欢",ph:"l·i·ke → /laɪk/",ex:["I like English very much.","我非常喜欢英语。"],col:["like doing 喜欢做","would like 想要"],topic:"情感",gram:"like doing=习惯，like to do=具体"},
+{e:"cat",z:"猫",p:"凯特",m:"凯特养了一只猫",ph:"c·at → /kæt/",ex:["The cat is sleeping.","猫在睡觉。"],col:["cat and mouse 猫和鼠","rain cats and dogs 下大雨"],topic:"动物",gram:"cat复数→cats"},
+{e:"dog",z:"狗",p:"到格",m:"到格(各)→到处都是狗",ph:"d·og → /dɒɡ/",ex:["The dog is very cute.","这只狗很可爱。"],col:["lucky dog 幸运儿","hot dog 热狗"],topic:"动物",gram:"dog复数→dogs"},
+{e:"book",z:"书",p:"布可",m:"布(bù)可→布做的书？不，是书！",ph:"b·oo·k → /bʊk/",ex:["I read a book every week.","我每周读一本书。"],col:["textbook 教科书","book a hotel 订酒店"],topic:"学校",gram:"book名词=书；动词=预订"},
+{e:"time",z:"时间",p:"太姆",m:"太姆(太慢)→时间太慢",ph:"t·i·me → /taɪm/",ex:["What time is it?","几点了？"],col:["on time 准时","in time 及时"],topic:"时间",gram:"what time=几点，It's time to...=该做某事了"},
+{e:"day",z:"天/日子",p:"对",m:"对→每天都对(good day)",ph:"d·ay → /deɪ/",ex:["Today is a good day.","今天是好日子。"],col:["every day 每天","day off 休息日"],topic:"时间",gram:"day=白天/天，today=今天"},
+{e:"name",z:"名字",p:"内姆",m:"内(nèi)姆→名字在内心里",ph:"n·a·me → /neɪm/",ex:["My name is Wang Lei.","我的名字是王磊。"],col:["first name 名","last name 姓"],topic:"自我介绍",gram:"What's your name? = 你叫什么名字？"},
+{e:"yes",z:"是",p:"耶斯",m:"耶斯→yes!",ph:"y·es → /jes/",ex:["Yes, I understand.","是的，我明白了。"],col:["yes sir 是先生","say yes 说好"],topic:"基本回答",gram:"yes表肯定，反义词no"},
+{e:"no",z:"不/没有",p:"no",m:"no就是不",ph:"n·o → /nəʊ/",ex:["No, thank you.","不了，谢谢。"],col:["no way 没门","no problem 没问题"],topic:"基本回答",gram:"no表否定，与not区分"},
+{e:"please",z:"请",p:"普利z",m:"请(qǐng)→普利z→请帮忙",ph:"pl·ea·se → /pliːz/",ex:["Please sit down.","请坐。"],col:["please 请","as you please 随你喜欢"],topic:"礼貌用语",gram:"please放在句首或句末都行"},
+{e:"sorry",z:"对不起",p:"扫瑞",m:"扫(sǎo)瑞→扫了瑞的面子→对不起",ph:"sor·ry → /ˈsɒri/",ex:["I am sorry.","对不起。"],col:["I'm sorry 对不起"],topic:"礼貌用语",gram:"sorry=形容词：I'm sorry"},
+{e:"new",z:"新的",p:"牛",m:"牛→新出的很牛",ph:"n·ew → /njuː/",ex:["This is a new book.","这是一本新书。"],col:["brand new 全新","new year 新年"],topic:"描述",gram:"new反义词=old"},
+{e:"old",z:"老的/旧的",p:"欧的",m:"欧(ōu)的→老欧洲的",ph:"o·ld → /əʊld/",ex:["My grandfather is old.","我爷爷老了。"],col:["old friend 老朋友","how old 多大"],topic:"描述",gram:"old既表示年纪大也表示东西旧"},
+{e:"good",z:"好的",p:"古德",m:"古德→good morning",ph:"g·oo·d → /ɡʊd/",ex:["Good morning!","早上好！"],col:["good morning 早上好","good at 擅长"],topic:"描述",gram:"good比较级=better，最高级=best"},
+{e:"bad",z:"坏的",p:"拜的",m:"拜(bài)的→拜拜→坏掉了",ph:"b·ad → /bæd/",ex:["This is a bad idea.","这是个坏主意。"],col:["bad weather 坏天气","go bad 变坏"],topic:"描述",gram:"bad比较级=worse，最高级=worst"},
+{e:"want",z:"想要",p:"旺特",m:"旺(wàng)特→旺旺特别想要",ph:"w·an·t → /wɒnt/",ex:["I want to learn English.","我想学英语。"],col:["want to do 想做","want sth 想要某物"],topic:"动词",gram:"want+to+动词原形=想要做某事"},
+{e:"know",z:"知道",p:"no",m:"know和no发音一样→知道了就说no",ph:"k·no·w → /nəʊ/",ex:["I know the answer.","我知道答案。"],col:["know about 了解","get to know 逐渐了解"],topic:"动词",gram:"know=知道/认识，k不发音"},
+{e:"come",z:"来",p:"卡姆",m:"卡(kǎ)姆→卡住的车来了",ph:"c·o·me → /kʌm/",ex:["Come here, please.","请过来。"],col:["come back 回来","come on 加油"],topic:"动词",gram:"come反义词=go，come from=来自"},
+{e:"see",z:"看见",p:"西",m:"西(xī)→往西看→看见",ph:"s·ee → /siː/",ex:["I can see the bird.","我能看见那只鸟。"],col:["see you 再见","see a doctor 看医生"],topic:"动词",gram:"see=看见(结果)，look=看(动作)"},
+{e:"hot↔cold",z:"热↔冷",p:"浩特↔扣的",m:"浩特(热)vs扣(冷)→反义词",ph:"h·ot / c·o·ld",ex:["It's hot in summer, cold in winter.","夏热冬冷。"],col:["hot water 热水","cold water 冷水"],topic:"反义词",gram:"hot/cold是温度反义词"},
+{e:"open↔close",z:"开↔关",p:"欧喷↔克漏z",m:"欧喷→打开，克漏z→关上",ph:"o·pen / c·lose",ex:["Open the door, please.","请开门。"],col:["open up 打开心扉","close friend 密友"],topic:"反义词",gram:"open/close既是动词也是形容词"},
+{e:"love↔hate",z:"爱↔恨",p:"拉夫↔黑特",m:"拉夫(lāfū)→爱拉夫，黑特→恨黑特",ph:"l·ove / h·ate",ex:["I love my country.","我爱国。"],col:["love doing 爱做","hate doing 讨厌做"],topic:"反义词",gram:"love/hate + doing都接动名词"},
+],
+2:[
+{e:"wonderful",z:"精彩的",p:"万德否",m:"万德否→精彩！(wan=万de=得ful=丰富)",ph:"won·der·ful → /ˈwʌndəfəl/",ex:["The movie is wonderful!","电影太精彩了！"],col:["wonderful time 美好时光"],topic:"情感描述",gram:"wonderful=形容词，表语或定语都行"},
+{e:"important",z:"重要的",p:"音剖疼特",m:"音剖(yīnpōu)疼特→解剖声音很重要",ph:"im·por·tant → /ɪmˈpɔːtənt/",ex:["English is very important.","英语非常重要。"],col:["important role 重要作用"],topic:"描述",gram:"It's important to do sth=做某事很重要"},
+{e:"beautiful",z:"美丽的",p:"标提否",m:"标(biāo)提否→标致的→美丽",ph:"beau·ti·ful → /ˈbjuːtɪfəl/",ex:["She is very beautiful.","她很美。"],col:["beautiful scenery 美丽风景"],topic:"描述",gram:"beautiful比pretty程度更强"},
+{e:"experience",z:"经验/经历",p:"一克斯皮瑞恩斯",m:"一克斯皮瑞恩斯→第一次经历很深刻",ph:"ex·pe·ri·ence → /ɪkˈspɪəriəns/",ex:["I have 5 years of experience.","我有5年经验。"],col:["work experience 工作经验"],topic:"职业",gram:"experience不可数=经验，可数=经历"},
+{e:"different",z:"不同的",p:"弟肥润特",m:"弟(dì)肥润特→弟弟肥了，不同了",ph:"dif·fer·ent → /ˈdɪfərənt/",ex:["We are different from each other.","我们彼此不同。"],col:["different from 与...不同"],topic:"描述",gram:"different+from：be different from sb/sth"},
+{e:"possible↔impossible",z:"可能↔不可能",p:"怕剖思剖↔因怕剖思剖",m:"加im前缀→否定(b/m/p前用im)",ph:"im·pos·si·ble → im前缀=不",ex:["Nothing is impossible.","没有什么不可能。"],col:["impossible dream 不可能的梦"],topic:"构词法",gram:"im-在b/m/p前代替un-"},
+{e:"teach",z:"教",p:"提吃",m:"提(tí)吃→教你提东西吃",ph:"t·ea·ch → /tiːtʃ/",ex:["She teaches us English.","她教我们英语。"],col:["teach oneself 自学"],topic:"学校",gram:"teach过去式=taught，teach sb sth"},
+{e:"learn",z:"学习",p:"乐恩",m:"乐(lè)恩→快乐感恩地学习",ph:"l·ea·rn → /lɜːn/",ex:["I want to learn English.","我想学英语。"],col:["learn from 向...学","learn by heart 背下来"],topic:"学校",gram:"learn from=向...学习"},
+{e:"work",z:"工作",p:"沃可",m:"沃(wò)可→沃土可以工作",ph:"w·or·k → /wɜːk/",ex:["I work at a bank.","我在银行工作。"],col:["go to work 去上班","work hard 努力工作"],topic:"工作",gram:"work可作名词和动词"},
+{e:"travel",z:"旅行",p:"踹否",m:"踹(chuài)否→踹一脚就去旅行",ph:"tra·vel → /ˈtrævəl/",ex:["I love to travel.","我喜欢旅行。"],col:["travel around 环游"],topic:"旅行",gram:"travel可数/不可数都行"},
+{e:"health",z:"健康",p:"黑了死",m:"黑(hēi)了死→没有健康就死了",ph:"heal·th → /helθ/",ex:["Health is very important.","健康很重要。"],col:["good health 好身体"],topic:"健康",gram:"health=名词，healthy=形容词"},
+{e:"money",z:"钱",p:"蚂蚁",m:"蚂蚁→蚂蚁搬家搬的都是钱",ph:"mon·ey → /ˈmʌni/",ex:["I don't have enough money.","我没有足够的钱。"],col:["save money 省钱","make money 赚钱"],topic:"购物",gram:"money不可数：much money(对)"},
+{e:"buy↔sell",z:"买↔卖",p:"拜↔赛欧",m:"拜(bài)→拜拜钱→买了；赛欧→卖了换车",ph:"b·uy / s·ell",ex:["I want to buy a book.","我想买书。"],col:["buy sth for sb 为某人买"],topic:"购物",gram:"buy sb sth=buy sth for sb"},
+{e:"weather",z:"天气",p:"韦zher",m:"韦(wéi)zher→围着天气聊天",ph:"weath·er → /ˈweðə/",ex:["What's the weather like today?","今天天气怎么样？"],col:["weather forecast 天气预报"],topic:"天气",gram:"weather不可数，用What's the weather like?"},
+{e:"listen",z:"听",p:"利森",m:"利(lì)森→森林里听声音",ph:"lis·ten → /ˈlɪsən/",ex:["Listen to the music.","听音乐。"],col:["listen to 听..."],topic:"动作",gram:"listen是不及物动词，必须加to"},
+{e:"speak",z:"说",p:"思比特",m:"思比(sībǐ)特→思考比较特殊地说",ph:"s·pe·ak → /spiːk/",ex:["Can you speak English?","你会说英语吗？"],col:["speak English 说英语"],topic:"语言",gram:"speak+语言(不加the)"},
+{e:"understand",z:"理解",p:"安德思但的",m:"安德(āndé)思但的→安心思考→理解了",ph:"un·der·stand → /ˌʌndəˈstænd/",ex:["I understand now.","我现在理解了。"],col:["make oneself understood"],topic:"动词",gram:"understand过去式=understood"},
+{e:"problem↔solution",z:"问题↔解决方案",p:"怕剖论木↔色路深",m:"有问题(problem)就有解决方案(solution)",ph:"prob·lem / so·lu·tion",ex:["What's the problem?","问题是什么？"],col:["no problem 没问题"],topic:"抽象概念",gram:"problem=solvable的问题，question=asked的问题"},
+{e:"think↔believe",z:"想↔相信",p:"新可↔比力V",m:"think=想，believe=相信，程度不同",ph:"th·ink / be·lieve",ex:["I think so.","我也这么想。"],col:["think about 考虑","believe in 信仰"],topic:"思维",gram:"think客观分析，believe更多信任"},
+],
+3:[
+{e:"environment",z:"环境",p:"因歪若蒙特",m:"因(yīn)歪若蒙特→环境坏了",ph:"en·vi·ron·ment → /ɪnˈvaɪrənmənt/",ex:["We must protect the environment.","我们必须保护环境。"],col:["protect the environment 保护环境"],topic:"自然",gram:"environment不可数"},
+{e:"technology",z:"科技",p:"特克脑罗技",m:"特(tè)克(kè)脑罗技→特别克脑的科技",ph:"tech·no·lo·gy → /tekˈnɒlədʒi/",ex:["Technology changes our lives.","科技改变生活。"],col:["modern technology 现代科技"],topic:"科技",gram:"technology可数：a technology/technologies"},
+{e:"communication",z:"沟通",p:"科缪尼凯深",m:"科缪(kēmiù)尼凯深→科学地沟通",ph:"com·mu·ni·ca·tion → /kəˌmjuːnɪˈkeɪʃən/",ex:["Good communication is important.","良好沟通很重要。"],col:["communication skills 沟通技巧"],topic:"社交",gram:"communicate=动词，communication=名词"},
+{e:"responsibility",z:"责任",p:"瑞思盘死必提提",m:"瑞思(ruìsī)盘死→责任压盘子",ph:"re·spon·si·bil·i·ty → /rɪˌspɒnsəˈbɪləti/",ex:["It's your responsibility.","这是你的责任。"],col:["take responsibility 承担责任"],topic:"品质",gram:"responsible=形容词，be responsible for"},
+{e:"opportunity",z:"机会",p:"奥坡丢你提",m:"奥(ào)坡丢你提→从坡上丢机会给你",ph:"op·por·tu·ni·ty → /ˌɒpəˈtjuːnəti/",ex:["This is a great opportunity.","这是个好机会。"],col:["take the opportunity 抓住机会"],topic:"抽象概念",gram:"opportunity可数：an opportunity"},
+{e:"education",z:"教育",p:"诶丢凯深",m:"诶(éi)丢凯深→诶！丢凯深的教育",ph:"e·du·ca·tion → /ˌedʒuˈkeɪʃən/",ex:["Education is very important.","教育非常重要。"],col:["quality education 优质教育"],topic:"学校",gram:"educate=动词，educator=教育者"},
+{e:"challenge",z:"挑战",p:"拆棱者",m:"拆(chāi)棱者→拆棱角的挑战者",ph:"chal·lenge → /ˈtʃælɪndʒ/",ex:["Life is full of challenges.","生活充满挑战。"],col:["accept a challenge 接受挑战"],topic:"抽象概念",gram:"challenge可作名词和动词"},
+{e:"decision",z:"决定",p:"迪西任",m:"迪(dí)西任→迪斯尼的决定",ph:"de·ci·sion → /dɪˈsɪʒən/",ex:["I made a big decision.","我做了重大决定。"],col:["make a decision 做决定"],topic:"思维",gram:"decide=动词，decision=名词"},
+{e:"confidence",z:"自信",p:"空飞等死",m:"空(kōng)飞等死→要有自信！",ph:"con·fi·dence → /ˈkɒnfɪdəns/",ex:["She has confidence in herself.","她对自己有信心。"],col:["gain confidence 获得信心"],topic:"品质",gram:"confident=形容词"},
+{e:"knowledge",z:"知识",p:"闹理者",m:"闹(nào)理者→知识闹闹的",ph:"knowl·edge → /ˈnɒlɪdʒ/",ex:["Knowledge is power.","知识就是力量。"],col:["gain knowledge 获得知识"],topic:"学习",gram:"knowledge不可数：much knowledge(对)"},
+{e:"quality",z:"质量",p:"阔丽提",m:"阔(kuò)丽提→华丽提→品质好",ph:"qual·i·ty → /ˈkwɒləti/",ex:["Quality is more important than quantity.","质量比数量重要。"],col:["high quality 高质量"],topic:"描述",gram:"quality可数=品质，不可数=质量"},
+{e:"create↔destroy",z:"创造↔毁灭",p:"克瑞诶特↔迪思戳伊",m:"create=创造，destroy=毁灭，反义词",ph:"cre·ate / des·troy",ex:["God created the world.","上帝创造了世界。"],col:["create jobs 创造就业"],topic:"动词",gram:"create=创造，creative=有创造力的"},
+{e:"important↔unimportant",z:"重要↔不重要",p:"音剖疼特↔昂音剖疼特",m:"加un前缀→否定",ph:"un·im·por·tant → un前缀=不",ex:["This is not important.","这不重要。"],topic:"构词法",gram:"un-是否定前缀：happy→unhappy"},
+{e:"increase↔decrease",z:"增加↔减少",p:"因克里斯↔迪克里斯",m:"de-前缀=减少，in-前缀=增加",ph:"in·crease / de·crease",ex:["Prices are increasing.","价格在涨。"],col:["increase by 增加了"],topic:"描述",gram:"increase/decrease都可作名词和动词"},
+{e:"phenomenon",z:"现象",p:"菲诺米嫩",m:"菲诺(fēinuò)米嫩→现象",ph:"phe·nom·e·non → /fɪˈnɒmɪnən/",ex:["Climate change is a global phenomenon.","气候变化是全球现象。"],col:["natural phenomenon 自然现象"],topic:"科学",gram:"复数=phenomena，不是phenomenons"},
+{e:"controversy",z:"争议",p:"空戳沃西",m:"空(kōng)戳沃西→空洞的争议",ph:"con·tro·ver·sy → /ˈkɒntrəvɜːsi/",ex:["This topic causes controversy.","这个话题引起争议。"],col:["cause controversy 引发争议"],topic:"社会",gram:"controversial=形容词：有争议的"},
+{e:"sustainable",z:"可持续的",p:"瑟思忒呢玻",m:"瑟(sè)思忒呢玻→可持续发展",ph:"sus·tain·a·ble → /səˈsteɪnəbəl/",ex:["We need sustainable development.","我们需要可持续发展。"],col:["sustainable energy 可持续能源"],topic:"环境",gram:"sustain=维持，sustainable=可持续的"},
+{e:"comprehensive",z:"全面的",p:"空普瑞亨西V",m:"空(kōng)普瑞亨西V→全面的综合V",ph:"com·pre·hen·sive → /ˌkɒmprɪˈhensɪv/",ex:["We need a comprehensive plan.","我们需要全面计划。"],col:["comprehensive review 全面审查"],topic:"描述",gram:"comprehension=理解力(名词)"},
+{e:"inevitable",z:"不可避免的",p:"因诶V特玻",m:"因(yīn)诶V特玻→因爱而不可避免",ph:"in·ev·i·ta·ble → /ɪnˈevɪtəbəl/",ex:["Change is inevitable.","变化是不可避免的。"],col:["inevitable consequence 不可避免的后果"],topic:"哲学",gram:"in-否定+evitable=不可避免"},
+],
+4:[
+{e:"philosophy",z:"哲学",p:"菲洛索菲",m:"菲洛(fēiluò)索菲→菲洛索菲想哲学",ph:"phi·los·o·phy → /fɪˈlɒsəfi/",ex:["Philosophy helps us think deeply.","哲学帮助我们深入思考。"],col:["life philosophy 人生哲学"],topic:"学术",gram:"philosopher=哲学家"},
+{e:"government",z:"政府",p:"嘎沃恩蒙特",m:"嘎(gā)沃恩蒙特→政府",ph:"gov·ern·ment → /ˈɡʌvənmənt/",ex:["The government made a new law.","政府制定了新法律。"],col:["local government 地方政府"],topic:"政治",gram:"govern=统治，government=名词"},
+{e:"democracy",z:"民主",p:"迪莫克拉西",m:"迪莫(dímò)克拉西→民主",ph:"de·moc·ra·cy → /dɪˈmɒkrəsi/",ex:["Democracy is important for freedom.","民主对自由很重要。"],col:["true democracy 真正的民主"],topic:"政治",gram:"democratic=民主的"},
+{e:"constitution",z:"宪法",p:"空思提丢深",m:"空(kōng)思提丢深→宪法",ph:"con·sti·tu·tion → /ˌkɒnstɪˈtjuːʃən/",ex:["The constitution protects our rights.","宪法保护我们的权利。"],col:["amend the constitution 修改宪法"],topic:"法律",gram:"constitutional=符合宪法的"},
+{e:"unprecedented",z:"前所未有的",p:"昂普瑞森等的",m:"昂(áng)普瑞森等的→前所未有",ph:"un·prec·e·dent·ed → /ʌnˈpresɪdentɪd/",ex:["This is an unprecedented event.","这是前所未有的事件。"],col:["unprecedented change 前所未有的变化"],topic:"描述",gram:"un-否定+precedent先例+ed"},
+{e:"phenomenon",z:"现象",p:"菲诺米嫩",m:"菲诺(fēinuò)米嫩→现象",ph:"phe·nom·e·non → /fɪˈnɒmɪnən/",ex:["Climate change is a global phenomenon.","气候变化是全球现象。"],col:["natural phenomenon 自然现象"],topic:"科学",gram:"复数=phenomena，不是phenomenons"},
+{e:"resilience",z:"韧性",p:"瑞兹力恩斯",m:"瑞(ruì)兹力恩斯→瑞士的力量→韧性",ph:"re·sil·ience → /rɪˈzɪliəns/",ex:["Children have amazing resilience.","孩子们有惊人的恢复力。"],col:["build resilience 培养韧性"],topic:"品质",gram:"resilient=形容词：有韧性的"},
+{e:"ubiquitous",z:"无处不在的",p:"尤比Q特思",m:"尤(yóu)比Q特思→QQ无处不在",ph:"u·bi·qui·tous → /juːˈbɪkwɪtəs/",ex:["Smartphones are ubiquitous now.","智能手机现在无处不在。"],col:["ubiquitous technology 无处不在的技术"],topic:"科技",gram:"ubiquity=名词：普遍存在"},
+{e:"serendipity",z:"机缘巧合",p:"瑟润迪皮提",m:"瑟(sè)润迪皮提→瑟瑟发抖→机缘巧合",ph:"ser·en·dip·i·ty → /ˌserənˈdɪpəti/",ex:["Finding that book was pure serendipity.","找到那本书纯属机缘巧合。"],col:["pure serendipity 纯粹的机缘巧合"],topic:"抽象概念",gram:"serendipitous=形容词"},
+{e:"ambiguity",z:"模糊/歧义",p:"安比Q提",m:"安(ān)比Q提→模糊的提问",ph:"am·big·u·i·ty → /ˌæmbɪˈɡjuːəti/",ex:["Avoid ambiguity in writing.","写作中避免歧义。"],col:["remove ambiguity 消除歧义"],topic:"语言",gram:"ambiguous=形容词：模棱两可的"},
+{e:"ephemeral",z:"短暂的",p:"诶菲莫若",m:"诶(éi)菲莫若→飞沫→短暂的",ph:"e·phem·er·al → /ɪˈfemərəl/",ex:["Fame is ephemeral.","名声是短暂的。"],col:["ephemeral beauty 短暂的美"],topic:"哲学",gram:"ephemeral=短暂的，反义词=permanent"},
+{e:"pragmatic",z:"务实的",p:"拍哥妈提可",m:"拍(pāi)哥妈提可→拍板→务实",ph:"pra·gmat·ic → /præɡˈmætɪk/",ex:["Be pragmatic about the problem.","务实对待这个问题。"],col:["pragmatic approach 务实方法"],topic:"品质",gram:"pragmatism=实用主义"},
+{e:"eloquent",z:"雄辩的",p:"诶洛克文特",m:"诶(éi)洛克文特→埃洛克→能言善辩",ph:"el·o·quent → /ˈeləkwənt/",ex:["She is an eloquent speaker.","她是个雄辩的演说家。"],col:["eloquent speech 雄辩的演讲"],topic:"品质",gram:"eloquence=口才(名词)"},
+{e:"metamorphosis",z:"蜕变",p:"麦特猫佛西思",m:"麦(mài)特猫佛西思→猫的蜕变",ph:"met·a·mor·pho·sis → /ˌmetəˈmɔːfəsɪs/",ex:["The caterpillar undergoes metamorphosis.","毛毛虫经历蜕变。"],col:["complete metamorphosis 完全变态"],topic:"科学",gram:"metamorphose=动词：蜕变"},
+{e:"nostalgia",z:"乡愁/怀旧",p:"诺思他吉亚",m:"诺(nuò)思他吉亚→思念他→怀旧",ph:"nos·tal·gia → /nɒˈstældʒə/",ex:["I feel nostalgia for my hometown.","我想念家乡。"],col:["nostalgia for 对...的怀念"],topic:"情感",gram:"nostalgic=形容词：怀旧的"},
+{e:"paradigm",z:"范式/典范",p:"拍了代木",m:"拍(pāi)了代木→范式",ph:"par·a·digm → /ˈpærədaɪm/",ex:["This changed the paradigm of science.","这改变了科学范式。"],col:["paradigm shift 范式转变"],topic:"学术",gram:"paradigm shift=范式转变"},
+{e:"controversy",z:"争议",p:"空戳沃西",m:"空(kōng)戳沃西→空洞的争议",ph:"con·tro·ver·sy → /ˈkɒntrəvɜːsi/",ex:["This topic causes controversy.","这个话题引起争议。"],col:["cause controversy 引发争议"],topic:"社会",gram:"controversial=形容词"},
+{e:"comprehensive",z:"全面的",p:"空普瑞亨西V",m:"空(kōng)普瑞亨西V→全面的",ph:"com·pre·hen·sive → /ˌkɒmprɪˈhensɪv/",ex:["We need a comprehensive plan.","我们需要全面计划。"],col:["comprehensive review 全面审查"],topic:"描述",gram:"comprehension=理解力(名词)"},
+{e:"sustainable",z:"可持续的",p:"瑟思忒呢玻",m:"瑟(sè)思忒呢玻→可持续发展",ph:"sus·tain·a·ble → /səˈsteɪnəbəl/",ex:["We need sustainable development.","我们需要可持续发展。"],col:["sustainable energy 可持续能源"],topic:"环境",gram:"sustain=维持，sustainable=可持续的"},
+]
+};
+
+function vbSpeak(text, rate){
+  if(!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  var u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US';
+  u.rate = rate || 0.85;
+  var voices = window.speechSynthesis.getVoices();
+  var en = voices.find(function(v){return v.lang.indexOf('en')===0;});
+  if(en) u.voice = en;
+  window.speechSynthesis.speak(u);
+}
+
+function renderVbank(){
+  var curLevel = parseInt(LS.get('en360_vb_level','1')) || 1;
+  var learned = LS.get('en360_vb_learned',{});
+  var mastered = LS.get('en360_vb_mastered',{});
+  var stats = {};
+  VBANK_LEVELS.forEach(function(lv){
+    var words = (VBANK_DATA[lv.id]||[]);
+    var lc=0, mc=0;
+    words.forEach(function(w){ if(learned[w.e]) lc++; if(mastered[w.e]) mc++; });
+    stats[lv.id] = {total:words.length, learned:lc, mastered:mc};
+  });
+  var html = '<div class="vb-levels">';
+  VBANK_LEVELS.forEach(function(lv){
+    var active = lv.id===curLevel?'vb-active':'';
+    var locked = lv.id>curLevel+1?'vb-locked':'';
+    html += '<button class="'+active+' '+locked+'" onclick="switchVbankLevel('+lv.id+')">'+lv.icon+' '+lv.name+'</button>';
+  });
+  html += '</div>';
+  var lv = VBANK_LEVELS[curLevel-1];
+  var st = stats[curLevel];
+  html += '<div class="card" style="background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border-radius:12px">';
+  html += '<div style="font-size:28px;font-weight:800">'+lv.icon+' '+lv.name+'</div>';
+  html += '<div style="font-size:14px;opacity:.8;margin:4px 0">'+lv.desc+'</div>';
+  html += '<div style="display:flex;gap:12px;margin-top:10px">';
+  html += '<div class="vb-stat" style="background:rgba(255,255,255,.2)"><b>'+st.total+'</b>总词</div>';
+  html += '<div class="vb-stat" style="background:rgba(255,255,255,.2)"><b>'+st.learned+'</b>已学</div>';
+  html += '<div class="vb-stat" style="background:rgba(255,255,255,.2)"><b>'+st.mastered+'</b>已掌握</div>';
+  html += '<div class="vb-stat" style="background:rgba(255,255,255,.2)"><b>'+Math.round(st.learned/Math.max(st.total,1)*100)+'%</b>进度</div>';
+  html += '</div>';
+  html += '<div class="vb-progress" style="background:rgba(255,255,255,.3);margin-top:8px"><div class="vb-progress-fill" style="width:'+Math.round(st.learned/Math.max(st.total,1)*100)+'%;background:#fff"></div></div>';
+  html += '</div>';
+  html += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0">';
+  html += '<button class="vb-btn vb-btn-primary" onclick="vbStartLearning()">📖 开始学习</button>';
+  html += '<button class="vb-btn vb-btn-success" onclick="vbStartQuiz()">📝 测验闯关</button>';
+  html += '<button class="vb-btn vb-btn-warn" onclick="vbReviewWrong()">🔄 复习错词</button>';
+  html += '<button class="vb-btn vb-btn-ghost" onclick="vbResetLevel()">🗑️ 重置本级</button>';
+  html += '</div>';
+  var words = VBANK_DATA[curLevel] || [];
+  html += '<div class="card"><h3>📋 本级单词一览</h3>';
+  words.forEach(function(w,i){
+    var stars = mastered[w.e]?'⭐⭐⭐⭐⭐':(learned[w.e]?'⭐':'');
+    html += '<div style="display:flex;align-items:center;padding:8px;border-bottom:1px solid #eee;cursor:pointer" onclick="vbShowWord('+curLevel+','+i+')">';
+    html += '<span style="font-weight:bold;width:140px;color:#2F5BD6">'+w.e+'</span>';
+    html += '<span style="flex:1;color:#666">'+w.z+'</span>';
+    html += '<span style="font-size:12px">'+stars+'</span>';
+    html += '</div>';
+  });
+  html += '</div>';
+  document.getElementById('vbCard').innerHTML = html;
+  document.getElementById('vbCard').classList.remove('hidden');
+  document.getElementById('vbQuiz').classList.add('hidden');
+  document.getElementById('vbResult').classList.add('hidden');
+}
+
+function switchVbankLevel(id){
+  if(id>1){
+    var prevLearned = LS.get('en360_vb_learned',{});
+    var prevWords = VBANK_DATA[id-1]||[];
+    var count = 0;
+    prevWords.forEach(function(w){ if(prevLearned[w.e]) count++; });
+    if(count < Math.floor(prevWords.length*0.3)){ alert('请先学完上一级30%的单词再解锁！'); return; }
+  }
+  LS.set('en360_vb_level', id);
+  renderVbank();
+}
+
+function vbShowWord(level, index){
+  var w = VBANK_DATA[level][index];
+  if(!w) return;
+  var html = '<div class="vb-card">';
+  html += '<div style="display:flex;justify-content:space-between;align-items:center">';
+  html += '<div><div class="vb-word-en">'+w.e+'</div><div class="vb-word-phonetic">'+w.ph+'</div><div class="vb-word-zh">'+w.z+' ('+w.p+')</div></div>';
+  html += '<button class="vb-btn vb-btn-ghost" onclick="renderVbank()">← 返回</button></div>';
+  html += '<div class="vb-tts-row">';
+  html += '<button onclick="vbSpeak(''+w.e.replace(/'/g,"\'")+'')">🔊 朗读</button>';
+  html += '<button onclick="vbSpeak(''+w.e.replace(/'/g,"\'")+'',0.6)">🐢 慢读</button>';
+  html += '<button onclick="vbSpeak(''+w.ex[0].replace(/'/g,"\'")+'')">🔊 听例句</button>';
+  html += '<button onclick="vbSpeak(''+w.e.replace(/'/g,"\'")+'',1.2)">⚡ 快读</button></div>';
+  html += '<div class="vb-memory"><b>🧠 记忆方法</b><br>'+w.m+'</div>';
+  html += '<div class="vb-phonics"><b>🔤 自然拼读</b><br>'+w.ph+'</div>';
+  if(w.gram) html += '<div class="vb-grammar-box"><b>📝 语法要点</b><br>'+w.gram+'</div>';
+  html += '<div class="vb-section"><b>💬 例句</b>';
+  w.ex.forEach(function(e){ html += '<div class="vb-example">'+e+'</div>'; });
+  html += '</div>';
+  if(w.col && w.col.length){
+    html += '<div class="vb-section"><b>🔗 常见搭配</b>';
+    w.col.forEach(function(c){ html += '<div class="vb-colloc">• '+c+'</div>'; });
+    html += '</div>';
+  }
+  html += '<div style="margin:8px 0"><span class="vb-tag">'+w.topic+'</span></div>';
+  html += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">';
+  html += '<button class="vb-btn vb-btn-success" onclick="vbMarkLearned(''+w.e.replace(/'/g,"\'")+'')">✅ 已学会</button>';
+  html += '<button class="vb-btn vb-btn-warn" onclick="vbMarkMastered(''+w.e.replace(/'/g,"\'")+'')">⭐ 已掌握</button>';
+  html += '<button class="vb-btn vb-btn-primary" onclick="vbTestWord('+level+','+index+')">📝 测验这个词</button></div>';
+  html += '<div style="display:flex;justify-content:space-between;margin-top:12px">';
+  if(index>0) html += '<button class="vb-btn vb-btn-ghost" onclick="vbShowWord('+level+','+(index-1)+')">◀ 上一个</button>';
+  else html += '<span></span>';
+  var words = VBANK_DATA[level]||[];
+  if(index<words.length-1) html += '<button class="vb-btn vb-btn-ghost" onclick="vbShowWord('+level+','+(index+1)+')">下一个 ▶</button>';
+  html += '</div></div>';
+  document.getElementById('vbCard').innerHTML = html;
+  document.getElementById('vbCard').classList.remove('hidden');
+  document.getElementById('vbQuiz').classList.add('hidden');
+  document.getElementById('vbResult').classList.add('hidden');
+}
+
+var _vbLearnBatch=[],_vbLearnIdx=0,_vbLearnLevel=1;
+function vbStartLearning(){
+  _vbLearnLevel = parseInt(LS.get('en360_vb_level','1'));
+  var words = VBANK_DATA[_vbLearnLevel] || [];
+  var learned = LS.get('en360_vb_learned',{});
+  var unlearned = [];
+  words.forEach(function(w,i){ if(!learned[w.e]) unlearned.push(i); });
+  if(unlearned.length===0){
+    var indices = words.map(function(_,i){return i;});
+    for(var i=indices.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=indices[i];indices[i]=indices[j];indices[j]=t;}
+    unlearned = indices.slice(0,5);
+  } else {
+    for(var i=unlearned.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=unlearned[i];unlearned[i]=unlearned[j];unlearned[j]=t;}
+    unlearned = unlearned.slice(0,5);
+  }
+  _vbLearnBatch = unlearned;
+  _vbLearnIdx = 0;
+  vbShowLearnCard();
+}
+
+function vbShowLearnCard(){
+  if(_vbLearnIdx >= _vbLearnBatch.length){
+    var html = '<div class="vb-card" style="text-align:center">';
+    html += '<div style="font-size:48px">🎉</div><h2>这批5个词学完了！</h2>';
+    html += '<div style="display:flex;gap:8px;justify-content:center;margin-top:12px">';
+    html += '<button class="vb-btn vb-btn-primary" onclick="vbStartLearning()">继续学下一批</button>';
+    html += '<button class="vb-btn vb-btn-success" onclick="vbStartQuiz()">去测验</button>';
+    html += '<button class="vb-btn vb-btn-ghost" onclick="renderVbank()">返回词库</button></div></div>';
+    document.getElementById('vbCard').innerHTML = html;
+    return;
+  }
+  vbShowWord(_vbLearnLevel, _vbLearnBatch[_vbLearnIdx]);
+  var prog = '<div style="text-align:center;padding:8px;background:#f0f4ff;border-radius:8px;margin-top:8px;font-size:13px">';
+  prog += '📖 进度：'+(_vbLearnIdx+1)+'/'+_vbLearnBatch.length;
+  prog += ' <button class="vb-btn vb-btn-ghost" style="padding:4px 12px;font-size:12px" onclick="vbSkipLearn()">跳过</button>';
+  prog += ' <button class="vb-btn vb-btn-success" style="padding:4px 12px;font-size:12px" onclick="vbNextLearn()">记住了→</button></div>';
+  document.getElementById('vbCard').innerHTML += prog;
+}
+
+function vbNextLearn(){
+  var w = VBANK_DATA[_vbLearnLevel][_vbLearnBatch[_vbLearnIdx]];
+  if(w) vbMarkLearned(w.e);
+  _vbLearnIdx++;
+  vbShowLearnCard();
+}
+function vbSkipLearn(){ _vbLearnIdx++; vbShowLearnCard(); }
+
+var _vbQuizData=[],_vbQuizIdx=0,_vbQuizScore=0,_vbQuizLevel=1;
+function vbStartQuiz(){
+  _vbQuizLevel = parseInt(LS.get('en360_vb_level','1'));
+  var words = VBANK_DATA[_vbQuizLevel] || [];
+  var indices = words.map(function(_,i){return i;});
+  for(var i=indices.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=indices[i];indices[i]=indices[j];indices[j]=t;}
+  _vbQuizData = indices.slice(0, Math.min(10, words.length));
+  _vbQuizIdx = 0; _vbQuizScore = 0;
+  vbShowQuizQ();
+}
+
+function vbShowQuizQ(){
+  if(_vbQuizIdx >= _vbQuizData.length){
+    var total=_vbQuizData.length, pct=Math.round(_vbQuizScore/total*100), pass=pct>=80;
+    var html = '<div class="vb-card" style="text-align:center">';
+    html += '<div style="font-size:60px">'+(pass?'🏆':'📚')+'</div>';
+    html += '<h2>'+(pass?'恭喜通关！':'再接再厉！')+'</h2>';
+    html += '<div style="font-size:36px;font-weight:800;color:'+(pass?'#4CAF50':'#ff9800')+'">'+_vbQuizScore+'/'+total+' ('+pct+'%)</div>';
+    html += '<div style="display:flex;gap:8px;justify-content:center;margin-top:12px">';
+    html += '<button class="vb-btn vb-btn-primary" onclick="renderVbank()">返回词库</button>';
+    if(!pass) html += '<button class="vb-btn vb-btn-warn" onclick="vbStartQuiz()">再测一次</button>';
+    html += '</div></div>';
+    document.getElementById('vbQuiz').innerHTML = html;
+    return;
+  }
+  var idx=_vbQuizData[_vbQuizIdx], w=VBANK_DATA[_vbQuizLevel][idx];
+  var allWords=VBANK_DATA[_vbQuizLevel];
+  var opts=[w.z];
+  var others=allWords.filter(function(x,i){return i!==idx;}).map(function(x){return x.z;});
+  for(var i=others.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=others[i];others[i]=others[j];others[j]=t;}
+  opts=opts.concat(others.slice(0,3));
+  for(var i=opts.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=opts[i];opts[i]=opts[j];opts[j]=t;}
+  var html = '<div class="vb-card">';
+  html += '<div style="text-align:center;margin-bottom:12px"><span class="vb-tag">第'+(_vbQuizIdx+1)+'/'+_vbQuizData.length+'题</span> <span style="font-size:20px;font-weight:bold;color:#2F5BD6">'+w.e+'</span></div>';
+  html += '<div style="text-align:center;margin:8px 0"><button class="vb-btn vb-btn-ghost" onclick="vbSpeak(''+w.e.replace(/'/g,"\'")+'')">🔊 听发音</button></div>';
+  html += '<div style="text-align:center;margin:12px 0;font-size:14px;color:#888">请选择正确的中文意思：</div>';
+  opts.forEach(function(opt){
+    html += '<button class="vb-quiz-opt" onclick="vbCheckQuiz(this,''+opt.replace(/'/g,"\'")+'',''+w.z.replace(/'/g,"\'")+'')">'+opt+'</button>';
+  });
+  html += '</div>';
+  document.getElementById('vbQuiz').innerHTML = html;
+  document.getElementById('vbQuiz').classList.remove('hidden');
+  document.getElementById('vbCard').classList.add('hidden');
+}
+
+function vbCheckQuiz(btn, chosen, correct){
+  if(btn.classList.contains('correct')||btn.classList.contains('wrong')) return;
+  var opts = btn.parentElement.querySelectorAll('.vb-quiz-opt');
+  opts.forEach(function(o){ if(o.textContent.trim()===correct) o.classList.add('correct'); });
+  if(chosen===correct){ _vbQuizScore++; var idx=_vbQuizData[_vbQuizIdx], w=VBANK_DATA[_vbQuizLevel][idx]; vbMarkMastered(w.e); }
+  else btn.classList.add('wrong');
+  setTimeout(function(){ _vbQuizIdx++; vbShowQuizQ(); }, 1500);
+}
+
+function vbTestWord(level,index){ _vbQuizLevel=level; _vbQuizData=[index]; _vbQuizIdx=0; _vbQuizScore=0; vbShowQuizQ(); }
+
+function vbMarkLearned(word){ var l=LS.get('en360_vb_learned',{}); l[word]=true; LS.set('en360_vb_learned',l); }
+function vbMarkMastered(word){ var m=LS.get('en360_vb_mastered',{}); m[word]=true; LS.set('en360_vb_mastered',m); vbMarkLearned(word); }
+
+function vbReviewWrong(){
+  _vbQuizLevel=parseInt(LS.get('en360_vb_level','1'));
+  var words=VBANK_DATA[_vbQuizLevel]||[], learned=LS.get('en360_vb_learned',{}), mastered=LS.get('en360_vb_mastered',{});
+  var wrong=[];
+  words.forEach(function(w,i){ if(learned[w.e] && !mastered[w.e]) wrong.push(i); });
+  if(wrong.length===0){ alert('没有错词需要复习！'); return; }
+  _vbQuizData=wrong; _vbQuizIdx=0; _vbQuizScore=0; vbShowQuizQ();
+}
+
+function vbResetLevel(){
+  if(!confirm('确定要重置本级学习进度吗？')) return;
+  var level=parseInt(LS.get('en360_vb_level','1')), words=VBANK_DATA[level]||[];
+  var learned=LS.get('en360_vb_learned',{}), mastered=LS.get('en360_vb_mastered',{});
+  words.forEach(function(w){ delete learned[w.e]; delete mastered[w.e]; });
+  LS.set('en360_vb_learned',learned); LS.set('en360_vb_mastered',mastered);
+  renderVbank();
+}
+
+
+
+// ================= AI 升级：支持外部 API =================
+function getAIConfig(){
+  return {
+    provider: LS.get('en360_ai_provider','builtin'),
+    apiKey: LS.get('en360_ai_key',''),
+    model: LS.get('en360_ai_model','deepseek-chat'),
+    endpoint: LS.get('en360_ai_endpoint','')
+  };
+}
+function saveAIConfig(){
+  var p=document.getElementById('aiProvider'),k=document.getElementById('aiKey'),m=document.getElementById('aiModel'),e=document.getElementById('aiEndpoint');
+  if(p) LS.set('en360_ai_provider',p.value);
+  if(k) LS.set('en360_ai_key',k.value);
+  if(m) LS.set('en360_ai_model',m.value);
+  if(e) LS.set('en360_ai_endpoint',e.value);
+  backupMsg('AI 配置已保存',true);
+}
+function onAIProviderChange(){
+  var p=document.getElementById('aiProvider'),c=document.getElementById('aiExternalConfig');
+  if(p&&c) c.style.display=p.value==='builtin'?'none':'block';
+}
+
 
 // ---------- 启动 ----------
 if (!start){
