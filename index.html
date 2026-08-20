@@ -264,12 +264,42 @@ html.dark .vb-phonics{background:#1e2d1e;border-left-color:#4CAF50}
 html.dark .vb-memory{background:#2d1e28;border-left-color:#E91E63}
 html.dark .vb-grammar-box{background:#1e2640}
 
+
+/* === 10 Optimizations === */
+.daily-report{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,.2);padding:28px;max-width:420px;width:90%;z-index:1000;text-align:center}
+.daily-report h2{margin:0 0 12px;color:#2F5BD6}
+.daily-report .stat-row{display:flex;justify-content:space-around;margin:12px 0}
+.daily-report .stat{text-align:center}
+.daily-report .stat b{display:block;font-size:28px;color:#2F5BD6}
+.daily-report .stat span{font-size:12px;color:#888}
+.report-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:999}
+.voice-score{display:inline-block;padding:4px 12px;border-radius:20px;font-weight:bold;font-size:14px}
+.voice-good{background:#e8f5e9;color:#2e7d32}
+.voice-ok{background:#fff3cd;color:#e65100}
+.voice-bad{background:#fce4ec;color:#c62828}
+.streak-bar{display:flex;gap:3px;margin:8px 0}
+.streak-day{width:20px;height:20px;border-radius:4px;background:#e0e0e0}
+.streak-day.done{background:#4CAF50}
+.streak-day.today{background:#2F5BD6;border:2px solid #fff}
+.share-card{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border-radius:16px;padding:24px;text-align:center}
+.share-card h3{margin:0 0 8px}
+.share-card .big{font-size:48px;font-weight:800}
+.dashboard-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:10px 0}
+.dash-card{background:#f8f9fa;border-radius:10px;padding:12px;text-align:center}
+.dash-card b{display:block;font-size:22px;color:#2F5BD6}
+.dash-card span{font-size:12px;color:#666}
+.smart-review-badge{display:inline-block;background:#ff9800;color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;margin-left:4px}
+强化池-badge{display:inline-block;background:#f44336;color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;margin-left:4px}
+html.dark .daily-report{background:#1e2744;color:#d0d6e8}
+html.dark .dash-card{background:#263050}
+html.dark .share-card{background:linear-gradient(135deg,#1a1a2e,#16213e)}
+
 </style>
 </head>
 <body>
 <header>
   <h1>🇺🇸 英语360天学习系统 · 自动学习版</h1>
-  <div class="sub" id="headSub">零基础 → 地道美语对话 + 看懂新闻报刊 · 全自动带学
+  <div class="sub" id="headSub"><span id="streakDisplay" style="display:none;background:#ff9800;color:#fff;padding:1px 6px;border-radius:8px;font-size:11px;margin-right:4px"></span>零基础 → 地道美语对话 + 看懂新闻报刊 · 全自动带学
     <button class="helpbtn" onclick="showWalk()">❓ 第一次用？点这里学</button>
     <button class="helpbtn" onclick="toggleDark()">🌙 夜间模式</button>
   </div>
@@ -686,7 +716,7 @@ let mastery = LS.get("en360_mastery", {});
 let hours = LS.get("en360_hours", 4);
 let iron = LS.get("en360_iron", 1);
 let quizDone = LS.get("en360_quizDone", {});
-const APP_VERSION = "2026-08-20-v10";
+const APP_VERSION = "2026-08-20-v11";
 let curDay = 1;
 
 // ---------- 基础 ----------
@@ -718,6 +748,8 @@ function updateHeader(){
   document.getElementById("pStreak").textContent = streak() + "天";
   const pm = document.getElementById("pMaster");
   if (pm) pm.textContent = masteredCount() + "词";
+
+  var sd=document.getElementById("streakDisplay");if(sd){var sk=getStreak();if(sk>1){sd.textContent="🔥 "+sk+"天";sd.style.display="inline";}else{sd.style.display="none";}}
 }
 function norm(s){ return String(s||"").toLowerCase().replace(/[^a-z ]/g,"").replace(/\s+/g," ").trim(); }
 function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
@@ -804,7 +836,7 @@ function switchTab(name){
   document.querySelectorAll("nav button").forEach(b => b.classList.toggle("on", b.dataset.tab === name));
   document.querySelectorAll("main > section").forEach(s => s.classList.add("hidden"));
   document.getElementById("tab-" + name).classList.remove("hidden");
-  if (name === "cal"){ renderCal(); renderWeekly(); renderCharts(); }
+  if (name === "cal"){ renderCal(); renderWeekly(); renderCharts(); var _dashEl=document.getElementById("dashWrap"); if(_dashEl) _dashEl.innerHTML=renderDashboard(); }
   if (name === "read") renderRead();
   if (name === "wrong") renderWrong();
   if (name === "today"){ renderDayList(); renderWriteCard(); }
@@ -3723,6 +3755,338 @@ var VBANK_DATA = {1:[
 {e:'nostalgia',z:'怀旧',p:'诺思他吉亚',m:'思念→怀旧',ph:'nos·tal·gia → /nɒˈstældʒə/',ex:['I feel nostalgia for my hometown.','我想念家乡。'],col:['nostalgia for'],topic:'情感',gram:'nostalgic=怀旧的'},
 {e:'paradigm',z:'范式',p:'拍了代木',m:'范式',ph:'par·a·digm → /ˈpærədaɪm/',ex:['This changed the paradigm of science.','这改变了科学范式。'],col:['paradigm shift'],topic:'学术',gram:'paradigm shift=范式转变'}
 ]};
+
+
+// ==================== 10 OPTIMIZATIONS ====================
+
+// ── 1. 语音识别跟读评分 ──
+function startVoiceScore(targetText, callback){
+  if(!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)){
+    alert('你的浏览器不支持语音识别，请用Chrome浏览器打开');
+    return;
+  }
+  var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var recognition = new SpeechRecognition();
+  recognition.lang = 'en-US';
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+  recognition.onresult = function(event){
+    var spoken = event.results[0][0].transcript.toLowerCase().trim();
+    var target = targetText.toLowerCase().replace(/[^a-z0-9 ]/g,'').trim();
+    var score = calcPronScore(spoken, target);
+    if(callback) callback(score, spoken);
+  };
+  recognition.onerror = function(e){
+    if(callback) callback(0, '(识别失败: '+e.error+')');
+  };
+  recognition.start();
+}
+function calcPronScore(spoken, target){
+  var sWords = spoken.split(/\s+/);
+  var tWords = target.split(/\s+/);
+  var correct = 0;
+  tWords.forEach(function(tw){
+    sWords.forEach(function(sw){
+      if(sw === tw || levenshtein(sw,tw) <= Math.max(1, Math.floor(tw.length*0.3))) correct++;
+    });
+  });
+  return Math.min(100, Math.round(correct / Math.max(tWords.length,1) * 100));
+}
+function levenshtein(a,b){
+  var m=a.length, n=b.length, dp=[];
+  for(var i=0;i<=m;i++){dp[i]=[];dp[i][0]=i;}
+  for(var j=0;j<=n;j++) dp[0][j]=j;
+  for(var i=1;i<=m;i++) for(var j=1;j<=n;j++){
+    dp[i][j] = a[i-1]===b[j-1] ? dp[i-1][j-1] : Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1])+1;
+  }
+  return dp[m][n];
+}
+function showVoiceBtn(text, containerId){
+  var el = document.getElementById(containerId);
+  if(!el) return;
+  el.innerHTML = '<button onclick="_doVoiceScore(this,\''+text.replace(/'/g,"\\'")+'\')" style="padding:8px 16px;border:2px solid #4CAF50;border-radius:10px;background:#fff;cursor:pointer;font-size:14px">🎤 跟读评分</button><span id="voiceResult_'+containerId+'" style="margin-left:8px"></span>';
+}
+function _doVoiceScore(btn, text){
+  btn.disabled = true; btn.textContent = '🎤 正在听...';
+  startVoiceScore(text, function(score, spoken){
+    btn.disabled = false; btn.textContent = '🎤 跟读评分';
+    var cls = score>=80?'voice-good':score>=50?'voice-ok':'voice-bad';
+    var label = score>=80?'优秀':score>=50?'还行':'再试试';
+    var res = document.getElementById('voiceResult_'+btn.parentElement.id);
+    if(!res) res = btn.nextElementSibling;
+    if(res) res.innerHTML = '<span class="voice-score '+cls+'">'+score+'分 '+label+'</span> <span style="font-size:12px;color:#888">你说了: '+spoken+'</span>';
+    // Record score
+    var scores = LS.get('en360_voice_scores',[]);
+    scores.push({text:text, score:score, time:Date.now()});
+    LS.set('en360_voice_scores', scores);
+  });
+}
+
+// ── 2. 每日学习报告 ──
+function showDailyReport(stats){
+  stats = stats || {};
+  var newWords = stats.newWords || 0;
+  var mastered = stats.mastered || 0;
+  var wrong = stats.wrong || 0;
+  var streak = getStreak();
+  var phase = phaseCn(todayPhase());
+  var tomorrowReview = getTomorrowReviewCount();
+  var html = '<div class="report-overlay" onclick="this.nextElementSibling.remove();this.remove()"></div>';
+  html += '<div class="daily-report">';
+  html += '<div style="font-size:48px">🎉</div>';
+  html += '<h2>今日学习报告</h2>';
+  html += '<div class="stat-row">';
+  html += '<div class="stat"><b>'+newWords+'</b><span>新学单词</span></div>';
+  html += '<div class="stat"><b>'+mastered+'</b><span>已掌握</span></div>';
+  html += '<div class="stat"><b>'+wrong+'</b><span>错词</span></div>';
+  html += '<div class="stat"><b>'+streak+'</b><span>连续天数</span></div>';
+  html += '</div>';
+  html += '<div style="margin:12px 0;font-size:14px;color:#666">';
+  html += '📊 当前阶段: '+phase+' | 明天需复习: <b>'+tomorrowReview+'</b>个词';
+  html += '</div>';
+  html += '<div style="margin:12px 0;font-size:13px">';
+  html += streak>=7?'🔥 坚持'+streak+'天了！继续保持！':streak>=3?'👍 连续'+streak+'天，养成习惯中！':'💪 开始积累连续天数吧！';
+  html += '</div>';
+  html += '<button onclick="this.parentElement.previousElementSibling.remove();this.parentElement.remove()" style="padding:10px 24px;border:none;border-radius:10px;background:#2F5BD6;color:#fff;font-size:15px;cursor:pointer">好的，继续！</button>';
+  html += '</div>';
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+// ── 3. 智能复习推送 ──
+function getTomorrowReviewCount(){
+  var count = 0;
+  var today = todayNo();
+  var learned = LS.get('en360_vb_learned',{});
+  var mastered = LS.get('en360_vb_mastered',{});
+  // Check spaced repetition schedule
+  var sr = LS.get('en360_spaced_review',{});
+  for(var word in sr){
+    if(sr[word] && sr[word] <= today+1) count++;
+  }
+  // Also count wrong words
+  var wrong = LS.get('en360_wrong',{});
+  for(var w in wrong) if(wrong[w]) count++;
+  return count;
+}
+function scheduleSpacedReview(word, quality){
+  // quality: 0-5 (0=blackout, 5=perfect)
+  var today = todayNo();
+  var sr = LS.get('en360_spaced_review',{});
+  var intervals = [0,1,3,7,14,30]; // days
+  var prevInterval = sr[word+'_interval'] || 0;
+  var nextIdx;
+  if(quality >= 4) nextIdx = Math.min(prevInterval+1, intervals.length-1);
+  else if(quality >= 2) nextIdx = prevInterval;
+  else nextIdx = 0;
+  sr[word] = today + intervals[nextIdx];
+  sr[word+'_interval'] = nextIdx;
+  LS.set('en360_spaced_review', sr);
+}
+function getSmartReviewList(){
+  var today = todayNo();
+  var sr = LS.get('en360_spaced_review',{});
+  var review = [];
+  for(var word in sr){
+    if(!word.includes('_interval') && sr[word] <= today) review.push(word);
+  }
+  return review;
+}
+
+// ── 4. 磨耳朵增强（后台播放+循环） ──
+var _earLoopRunning = false;
+var _earLoopTimer = null;
+function startEarLoop(texts, rate){
+  stopEarLoop();
+  _earLoopRunning = true;
+  var idx = 0;
+  function playNext(){
+    if(!_earLoopRunning) return;
+    if(idx >= texts.length) idx = 0; // loop
+    vbSpeak(texts[idx], rate || 0.85);
+    // Estimate duration: ~3 seconds per word
+    _earLoopTimer = setTimeout(function(){ idx++; playNext(); }, Math.max(2000, texts[idx].length * 400));
+  }
+  playNext();
+}
+function stopEarLoop(){
+  _earLoopRunning = false;
+  if(_earLoopTimer) clearTimeout(_earLoopTimer);
+  if(window.speechSynthesis) window.speechSynthesis.cancel();
+}
+
+// ── 5. 错词强化训练 ──
+function getReinforcePool(){
+  return LS.get('en360_reinforce',{});
+}
+function addToReinforce(word){
+  var pool = LS.get('en360_reinforce',{});
+  pool[word] = (pool[word]||0) + 1;
+  LS.set('en360_reinforce', pool);
+}
+function checkReinforce(word){
+  var pool = LS.get('en360_reinforce',{});
+  if(pool[word] && pool[word] >= 3){
+    delete pool[word];
+    LS.set('en360_reinforce', pool);
+    return true; // mastered, remove from pool
+  }
+  return false;
+}
+function getReinforceWords(){
+  var pool = LS.get('en360_reinforce',{});
+  return Object.keys(pool).sort(function(a,b){ return pool[b]-pool[a]; });
+}
+
+// ── 6. 知识回顾增强（点击跳转课程） ──
+function jumpToDay(dayNo){
+  curDay = dayNo;
+  switchTab('auto');
+  renderAuto();
+}
+
+// ── 7. 学习数据仪表盘 ──
+function renderDashboard(){
+  var learned = LS.get('en360_vb_learned',{});
+  var mastered = LS.get('en360_vb_mastered',{});
+  var wrong = LS.get('en360_wrong',{});
+  var checks = LS.get('en360_checks',{});
+  var streak = getStreak();
+  var startDate = LS.get('en360_start','');
+  var daysSinceStart = startDate ? Math.floor((Date.now()-new Date(startDate).getTime())/(86400000))+1 : 0;
+  var totalLearned = Object.keys(learned).length;
+  var totalMastered = Object.keys(mastered).length;
+  var totalWrong = Object.keys(wrong).length;
+  var daysCompleted = Object.keys(checks).filter(function(k){ return checks[k] && checks[k].pass; }).length;
+  var avgPerDay = daysSinceStart>0 ? (totalLearned/daysSinceStart).toFixed(1) : 0;
+  var estimatedFinish = totalLearned>0 ? Math.ceil((8000-totalLearned)/Math.max(parseFloat(avgPerDay),1)) : 800;
+
+  var html = '<div class="dashboard-grid">';
+  html += '<div class="dash-card"><b>'+totalLearned+'</b><span>已学单词</span></div>';
+  html += '<div class="dash-card"><b>'+totalMastered+'</b><span>已掌握</span></div>';
+  html += '<div class="dash-card"><b>'+streak+'</b><span>连续天数</span></div>';
+  html += '<div class="dash-card"><b>'+daysCompleted+'</b><span>过关天数</span></div>';
+  html += '<div class="dash-card"><b>'+daysSinceStart+'</b><span>学习天数</span></div>';
+  html += '<div class="dash-card"><b>'+avgPerDay+'</b><span>日均新词</span></div>';
+  html += '<div class="dash-card"><b>'+totalWrong+'</b><span>待消灭错词</span></div>';
+  html += '<div class="dash-card"><b>~'+estimatedFinish+'</b><span>预计剩余天数</span></div>';
+  html += '</div>';
+
+  // Streak visualization
+  html += '<div style="margin:12px 0"><b>📅 近30天学习记录</b></div>';
+  html += '<div class="streak-bar">';
+  var today = todayNo();
+  for(var i=29;i>=0;i--){
+    var day = today-i;
+    var done = checks[day] && checks[day].pass;
+    var isToday = i===0;
+    html += '<div class="streak-day'+(done?' done':'')+(isToday?' today':'')+'" title="Day '+(day+1)+(done?' ✓':'')+'"></div>';
+  }
+  html += '</div>';
+
+  return html;
+}
+
+// ── 8. 智能提醒（习惯感知） ──
+function getSmartReminder(){
+  var checks = LS.get('en360_checks',{});
+  var today = todayNo();
+  var yesterdayDone = checks[today-1] && checks[today-1].pass;
+  var todayDone = checks[today] && checks[today].pass;
+  var streak = getStreak();
+  var lastStudyDay = 0;
+  for(var i=today;i>=0;i--){
+    if(checks[i] && (checks[i].pass || checks[i].done)){ lastStudyDay=i; break; }
+  }
+  var daysSinceStudy = today - lastStudyDay;
+  if(todayDone) return null; // Already done
+  if(daysSinceStudy === 0 && !yesterdayDone) return '昨天的课程还没过关哦，今天加油！';
+  if(daysSinceStudy === 1) return '昨天没学，今天补上吧！';
+  if(daysSinceStudy >= 2) return '已经'+daysSinceStudy+'天没学了，赶紧打开学一会儿！';
+  if(streak >= 7) return '🔥 连续'+streak+'天了！今天也别断！';
+  return null;
+}
+
+// ── 9. 分享学习成果卡片 ──
+function showShareCard(){
+  var learned = LS.get('en360_vb_learned',{});
+  var mastered = LS.get('en360_vb_mastered',{});
+  var streak = getStreak();
+  var total = Object.keys(learned).length;
+  var master = Object.keys(mastered).length;
+
+  var html = '<div class="report-overlay" onclick="this.nextElementSibling.remove();this.remove()"></div>';
+  html += '<div class="share-card">';
+  html += '<h3>🎓 英语360天学习成果</h3>';
+  html += '<div class="big">'+master+'</div>';
+  html += '<div style="font-size:16px;margin:8px 0">个单词已掌握</div>';
+  html += '<div style="display:flex;justify-content:center;gap:20px;margin:16px 0;font-size:14px">';
+  html += '<div>📚 已学 '+total+' 词</div>';
+  html += '<div>🔥 连续 '+streak+' 天</div>';
+  html += '</div>';
+  html += '<div style="font-size:12px;opacity:.8;margin-top:12px">零基础→地道美语 · 英语360天全自动带学系统</div>';
+  html += '<button onclick="navigator.clipboard && navigator.clipboard.writeText(\'我正在用英语360天系统学习！已掌握'+master+'个单词，连续'+streak+'天！💪\');alert(\'已复制到剪贴板！\')" style="margin-top:12px;padding:10px 20px;border:none;border-radius:10px;background:#fff;color:#667eea;font-weight:bold;cursor:pointer">📋 复制分享文案</button>';
+  html += '</div>';
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+// ── 10. 游戏化 streak 系统 ──
+function getStreak(){
+  var checks = LS.get('en360_checks',{});
+  var today = todayNo();
+  var streak = 0;
+  for(var i=today;i>=0;i--){
+    if(checks[i] && checks[i].pass) streak++;
+    else if(i < today) break; // Allow today to be incomplete
+  }
+  return streak;
+}
+function getXP(){
+  var learned = LS.get('en360_vb_learned',{});
+  var mastered = LS.get('en360_vb_mastered',{});
+  var checks = LS.get('en360_checks',{});
+  var streak = getStreak();
+  var xp = 0;
+  xp += Object.keys(learned).length * 10; // 10xp per learned word
+  xp += Object.keys(mastered).length * 20; // 20xp per mastered word
+  xp += Object.keys(checks).filter(function(k){return checks[k].pass;}).length * 100; // 100xp per day passed
+  xp += streak * 50; // 50xp per streak day
+  return xp;
+}
+function getLevel(){
+  var xp = getXP();
+  var levels = [0,100,300,600,1000,1500,2500,4000,6000,8000,12000,16000,22000,30000,40000,55000,75000,100000];
+  var level = 1;
+  for(var i=1;i<levels.length;i++){
+    if(xp >= levels[i]) level = i+1;
+    else break;
+  }
+  var nextLevel = levels[Math.min(level, levels.length-1)];
+  var prevLevel = levels[Math.min(level-1, levels.length-1)];
+  var progress = nextLevel > prevLevel ? ((xp-prevLevel)/(nextLevel-prevLevel)*100).toFixed(0) : 100;
+  return {level:level, xp:xp, nextXP:nextLevel, progress:progress};
+}
+function getAchievementList(){
+  var streak = getStreak();
+  var learned = Object.keys(LS.get('en360_vb_learned',{})).length;
+  var mastered = Object.keys(LS.get('en360_vb_mastered',{})).length;
+  var checks = LS.get('en360_checks',{});
+  var daysPassed = Object.keys(checks).filter(function(k){return checks[k].pass;}).length;
+  return [
+    {name:'🌱 初学者', desc:'开始第一天学习', unlocked: daysPassed>=1},
+    {name:'🔥 连续7天', desc:'连续学习7天', unlocked: streak>=7},
+    {name:'💎 连续30天', desc:'连续学习30天', unlocked: streak>=30},
+    {name:'👑 连续100天', desc:'连续学习100天', unlocked: streak>=100},
+    {name:'📚 百词斩', desc:'学会100个单词', unlocked: learned>=100},
+    {name:'🎓 千词达人', desc:'学会1000个单词', unlocked: learned>=1000},
+    {name:'⭐ 五百掌握', desc:'掌握500个单词', unlocked: mastered>=500},
+    {name:'🏆 词汇王者', desc:'掌握2000个单词', unlocked: mastered>=2000},
+    {name:'📖 过关50天', desc:'完成50天课程', unlocked: daysPassed>=50},
+    {name:'🎯 过关100天', desc:'完成100天课程', unlocked: daysPassed>=100},
+    {name:'🗣️ 口语之星', desc:'语音评分累计100次', unlocked: (LS.get('en360_voice_scores',[]).length)>=100},
+    {name:'🧠 记忆大师', desc:'错词本清零', unlocked: Object.keys(checks).length>30 && Object.keys(LS.get('en360_wrong',{})).length===0},
+  ];
+}
+
 
 // ---------- 启动 ----------
 if (!start){
